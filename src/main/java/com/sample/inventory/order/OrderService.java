@@ -12,6 +12,8 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -119,31 +121,31 @@ public class OrderService {
 
   @Transactional
   public OrderResponse confirm(long id) {
-    var order =
-        orderRepo.findDetailedById(id).orElseThrow(() -> new NotFoundException("order", id));
+    var order = orderRepo.findDetailedById(id)
+        .orElseThrow(() -> new NotFoundException("order", id));
     if (order.getStatus() == OrderStatus.CONFIRMED) {
       return OrderMapper.toResponse(order);
     }
     order.confirm();
-    for (var line : order.getLines()) {
-      for (var alloc : line.getAllocations()) {
-        var inv =
-            invRepo
-                .lockOne(line.getProduct().getId(), alloc.getWarehouse().getId())
-                .orElseThrow(
-                    () ->
-                        new NotFoundException(
-                            "inventory",
-                            line.getProduct().getId() + "/" + alloc.getWarehouse().getId()));
+    Map<Long, Reservation> resByAlloc = new HashMap<>();
+    for (var r : reservationRepo.lockByOrderId(id)) {
+      resByAlloc.put(r.getAllocation().getId(), r);
+    }
+    var sortedLines = order.getLines().stream()
+        .sorted(Comparator.comparing(l -> l.getProduct().getId()))
+        .toList();
+    for (var line : sortedLines) {
+      var sortedAllocs = line.getAllocations().stream()
+          .sorted(Comparator.comparing(a -> a.getWarehouse().getId()))
+          .toList();
+      for (var alloc : sortedAllocs) {
+        var inv = invRepo.lockOne(line.getProduct().getId(), alloc.getWarehouse().getId())
+            .orElseThrow(() -> new NotFoundException("inventory",
+                line.getProduct().getId() + "/" + alloc.getWarehouse().getId()));
         inv.confirm(alloc.getQty());
-        alloc.getReservation().confirm();
-        movements.write(
-            line.getProduct(),
-            alloc.getWarehouse(),
-            MovementType.OUT,
-            alloc.getQty(),
-            "ORDER",
-            order.getId());
+        resByAlloc.get(alloc.getId()).confirm();
+        movements.write(line.getProduct(), alloc.getWarehouse(), MovementType.OUT,
+            alloc.getQty(), "ORDER", order.getId());
       }
     }
     return OrderMapper.toResponse(order);
@@ -151,28 +153,31 @@ public class OrderService {
 
   @Transactional
   public OrderResponse cancel(long id) {
-    var order =
-        orderRepo.findDetailedById(id).orElseThrow(() -> new NotFoundException("order", id));
+    var order = orderRepo.findDetailedById(id)
+        .orElseThrow(() -> new NotFoundException("order", id));
+    if (order.getStatus() == OrderStatus.CANCELLED) {
+      return OrderMapper.toResponse(order);
+    }
     order.cancel();
-    for (var line : order.getLines()) {
-      for (var alloc : line.getAllocations()) {
-        var inv =
-            invRepo
-                .lockOne(line.getProduct().getId(), alloc.getWarehouse().getId())
-                .orElseThrow(
-                    () ->
-                        new NotFoundException(
-                            "inventory",
-                            line.getProduct().getId() + "/" + alloc.getWarehouse().getId()));
+    Map<Long, Reservation> resByAlloc = new HashMap<>();
+    for (var r : reservationRepo.lockByOrderId(id)) {
+      resByAlloc.put(r.getAllocation().getId(), r);
+    }
+    var sortedLines = order.getLines().stream()
+        .sorted(Comparator.comparing(l -> l.getProduct().getId()))
+        .toList();
+    for (var line : sortedLines) {
+      var sortedAllocs = line.getAllocations().stream()
+          .sorted(Comparator.comparing(a -> a.getWarehouse().getId()))
+          .toList();
+      for (var alloc : sortedAllocs) {
+        var inv = invRepo.lockOne(line.getProduct().getId(), alloc.getWarehouse().getId())
+            .orElseThrow(() -> new NotFoundException("inventory",
+                line.getProduct().getId() + "/" + alloc.getWarehouse().getId()));
         inv.release(alloc.getQty());
-        alloc.getReservation().cancel();
-        movements.write(
-            line.getProduct(),
-            alloc.getWarehouse(),
-            MovementType.RELEASE,
-            alloc.getQty(),
-            "ORDER",
-            order.getId());
+        resByAlloc.get(alloc.getId()).cancel();
+        movements.write(line.getProduct(), alloc.getWarehouse(), MovementType.RELEASE,
+            alloc.getQty(), "ORDER", order.getId());
       }
     }
     return OrderMapper.toResponse(order);

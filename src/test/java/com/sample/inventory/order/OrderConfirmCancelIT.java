@@ -35,6 +35,7 @@ class OrderConfirmCancelIT {
   @Autowired ProductRepository productRepo;
   @Autowired WarehouseRepository warehouseRepo;
   @Autowired StockMovementRepository movementRepo;
+  @Autowired ReservationExpiryService expiry;
 
   Product p;
   Warehouse w;
@@ -96,6 +97,14 @@ class OrderConfirmCancelIT {
   void confirmAfterCancelIsInvalid() {
     var created = pendingOrder(2);
     orders.cancel(created.id());
+    assertThatThrownBy(() -> orders.confirm(created.id()))
+        .isInstanceOf(InvalidTransitionException.class);
+  }
+
+  @Test
+  void confirmAfterExpiryIsInvalid() {
+    var created = pendingOrder(2);
+    expiry.expireBatch(java.time.Instant.now().plusSeconds(3600));
     assertThatThrownBy(() -> orders.confirm(created.id()))
         .isInstanceOf(InvalidTransitionException.class);
   }

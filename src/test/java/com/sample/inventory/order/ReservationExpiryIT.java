@@ -66,7 +66,7 @@ class ReservationExpiryIT {
     assertThat(movementRepo.findAll())
         .extracting(m -> m.getType())
         .containsExactlyInAnyOrder(MovementType.RESERVE, MovementType.RELEASE);
-    assertThat(orders.get(created.id()).status()).isEqualTo(OrderStatus.PENDING);
+    assertThat(orders.get(created.id()).status()).isEqualTo(OrderStatus.CANCELLED);
   }
 
   @Test

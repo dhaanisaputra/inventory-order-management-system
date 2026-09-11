@@ -20,6 +20,8 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
       + " order by i.warehouse.priority asc, i.warehouse.id asc")
   List<Inventory> lockAvailable(long productId);
 
+  List<Inventory> findByProduct_Id(long productId);
+
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   @QueryHints(@QueryHint(name = "jakarta.persistence.lock.timeout", value = "3000"))
   @Query("select i from Inventory i where i.product.id = :productId and i.warehouse.id = :warehouseId")

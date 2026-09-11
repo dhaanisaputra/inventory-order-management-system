@@ -1,0 +1,103 @@
+package com.sample.inventory.order;
+
+import com.sample.inventory.common.error.IdempotencyConflictException;
+import com.sample.inventory.common.error.InsufficientStockException;
+import com.sample.inventory.common.error.NotFoundException;
+import com.sample.inventory.inventory.InventoryRepository;
+import com.sample.inventory.movement.MovementType;
+import com.sample.inventory.movement.MovementWriter;
+import com.sample.inventory.product.Product;
+import com.sample.inventory.product.ProductRepository;
+import java.time.Clock;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Comparator;
+import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
+public class OrderService {
+
+  private final SalesOrderRepository orderRepo;
+  private final OrderIdempotencyRepository idemRepo;
+  private final ReservationRepository reservationRepo;
+  private final InventoryRepository invRepo;
+  private final ProductRepository productRepo;
+  private final MovementWriter movements;
+  private final ReservationProperties props;
+  private final Clock clock;
+
+  @Transactional
+  public OrderResponse create(CreateOrderRequest req, String idemKey, String reqHash) {
+    if (idemKey != null) {
+      var existing = idemRepo.findById(idemKey);
+      if (existing.isPresent()) {
+        if (!existing.get().getRequestHash().equals(reqHash)) {
+          throw new IdempotencyConflictException();
+        }
+        return get(existing.get().getOrder().getId());
+      }
+    }
+    var order = new SalesOrder();
+    var sorted = req.lines().stream()
+        .sorted(Comparator.comparing(CreateOrderRequest.CreateOrderLine::productId))
+        .toList();
+    record Pending(Allocation allocation, Reservation reservation) {}
+    var pending = new ArrayList<Pending>();
+    for (var line : sorted) {
+      Product product = productRepo.findById(line.productId())
+          .orElseThrow(() -> new NotFoundException("product", line.productId()));
+      var ol = new OrderLine(order, product, line.qty());
+      order.addLine(ol);
+      int rest = line.qty();
+      for (var inv : invRepo.lockAvailable(product.getId())) {
+        if (rest == 0) {
+          break;
+        }
+        int take = Math.min(rest, inv.getAvailable());
+        inv.reserve(take);
+        var allocation = new Allocation(ol, inv.getWarehouse(), take);
+        ol.addAllocation(allocation);
+        pending.add(new Pending(allocation,
+            new Reservation(allocation, take, clock.instant().plus(props.ttl()))));
+        rest -= take;
+      }
+      if (rest > 0) {
+        throw new InsufficientStockException(product.getSku());
+      }
+    }
+    orderRepo.saveAndFlush(order);
+    for (var p : pending) {
+      reservationRepo.save(p.reservation());
+      movements.write(p.allocation().getOrderLine().getProduct(), p.allocation().getWarehouse(),
+          MovementType.RESERVE, p.allocation().getQty(), "ORDER", order.getId());
+    }
+    if (idemKey != null) {
+      try {
+        idemRepo.saveAndFlush(new OrderIdempotency(idemKey, reqHash, order));
+      } catch (DataIntegrityViolationException e) {
+        var existing = idemRepo.findById(idemKey).orElseThrow(() -> e);
+        if (!existing.getRequestHash().equals(reqHash)) {
+          throw new IdempotencyConflictException();
+        }
+        return get(existing.getOrder().getId());
+      }
+    }
+    return get(order.getId());
+  }
+
+  public OrderResponse get(long id) {
+    return orderRepo.findDetailedById(id).map(OrderMapper::toResponse)
+        .orElseThrow(() -> new NotFoundException("order", id));
+  }
+
+  public Page<OrderResponse> search(OrderStatus status, Instant from, Instant to, Pageable pageable) {
+    return orderRepo.search(status, from, to, pageable).map(OrderMapper::toResponse);
+  }
+}

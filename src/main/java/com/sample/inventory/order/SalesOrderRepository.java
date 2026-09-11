@@ -10,10 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface SalesOrderRepository extends JpaRepository<SalesOrder, Long> {
 
-  @EntityGraph(attributePaths = {
-      "lines", "lines.product",
-      "lines.allocations", "lines.allocations.warehouse", "lines.allocations.reservation"
-  })
+  @EntityGraph(attributePaths = {"lines", "lines.product"})
   @Query("select o from SalesOrder o where o.id = :id")
   Optional<SalesOrder> findDetailedById(long id);
 

@@ -1,0 +1,6 @@
+spring:
+  kafka:
+    listener:
+      auto-startup: false
+  cache:
+    type: simple

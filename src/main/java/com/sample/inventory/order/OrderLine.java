@@ -17,6 +17,7 @@ import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
 
 @Entity
 @Table(name = "order_line")
@@ -39,6 +40,7 @@ public class OrderLine {
   @Column(nullable = false)
   private int qty;
 
+  @BatchSize(size = 50)
   @OneToMany(mappedBy = "orderLine", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<Allocation> allocations = new ArrayList<>();
 

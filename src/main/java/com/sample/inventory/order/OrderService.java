@@ -12,6 +12,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
@@ -38,7 +39,7 @@ public class OrderService {
     if (idemKey != null) {
       var existing = idemRepo.findById(idemKey);
       if (existing.isPresent()) {
-        if (!existing.get().getRequestHash().equals(reqHash)) {
+        if (!Objects.equals(existing.get().getRequestHash(), reqHash)) {
           throw new IdempotencyConflictException();
         }
         return get(existing.get().getOrder().getId());
@@ -83,7 +84,7 @@ public class OrderService {
         idemRepo.saveAndFlush(new OrderIdempotency(idemKey, reqHash, order));
       } catch (DataIntegrityViolationException e) {
         var existing = idemRepo.findById(idemKey).orElseThrow(() -> e);
-        if (!existing.getRequestHash().equals(reqHash)) {
+        if (!Objects.equals(existing.getRequestHash(), reqHash)) {
           throw new IdempotencyConflictException();
         }
         return get(existing.getOrder().getId());

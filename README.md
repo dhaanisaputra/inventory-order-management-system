@@ -75,5 +75,9 @@ purchase/returns/alerts → Kafka + Redis → AI stubs.
 | POST | /api/v1/purchase-orders/{id}/receive | partial/full receive (200), over-receive → 400 |
 | POST | /api/v1/returns | return to origin warehouse (201), over-return → 400 |
 | GET | /api/v1/returns | paged, sort: createdAt |
+| GET | /api/v1/products/{id}/inventory | per-warehouse stock, Redis cached (30s) |
+| GET | /api/v1/stock-movements | (existing — now also emits Kafka events) |
+
+Events (Kafka): `inventory.order.created|confirmed|cancelled`, `inventory.stock.movement` via transactional outbox + relay (10s); `inventory.stock.low` fire-and-forget on confirm, logged by alert consumer.
 
 Swagger UI: /swagger-ui.html — OpenAPI: /v3/api-docs

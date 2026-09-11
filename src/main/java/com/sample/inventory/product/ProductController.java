@@ -3,7 +3,10 @@ package com.sample.inventory.product;
 import com.sample.inventory.common.web.ApiResponse;
 import com.sample.inventory.common.web.PagedResult;
 import com.sample.inventory.common.web.SortValidator;
+import com.sample.inventory.inventory.InventoryResponse;
+import com.sample.inventory.inventory.InventoryService;
 import jakarta.validation.Valid;
+import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -28,6 +31,7 @@ public class ProductController {
   private static final Sort DEFAULT_SORT = Sort.by("name").ascending();
 
   private final ProductService service;
+  private final InventoryService inventories;
 
   @PostMapping
   public ResponseEntity<ApiResponse<ProductResponse>> create(
@@ -51,5 +55,10 @@ public class ProductController {
   public ResponseEntity<ApiResponse<ProductResponse>> update(
       @PathVariable Long id, @Valid @RequestBody UpdateProductRequest req) {
     return ResponseEntity.ok(ApiResponse.ok(service.update(id, req)));
+  }
+
+  @GetMapping("/{id}/inventory")
+  public ResponseEntity<ApiResponse<List<InventoryResponse>>> inventory(@PathVariable long id) {
+    return ResponseEntity.ok(ApiResponse.ok(inventories.getByProduct(id)));
   }
 }

@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -42,6 +43,7 @@ public class OrderService {
   private final Clock clock;
 
   @Transactional
+  @CacheEvict(value = "inv", allEntries = true)
   public OrderResponse create(CreateOrderRequest req, String idemKey, String reqHash) {
     if (idemKey != null) {
       var existing = idemRepo.findById(idemKey);
@@ -127,6 +129,7 @@ public class OrderService {
   }
 
   @Transactional
+  @CacheEvict(value = "inv", allEntries = true)
   public OrderResponse confirm(long id) {
     var order =
         orderRepo.findDetailedById(id).orElseThrow(() -> new NotFoundException("order", id));
@@ -174,6 +177,7 @@ public class OrderService {
   }
 
   @Transactional
+  @CacheEvict(value = "inv", allEntries = true)
   public OrderResponse cancel(long id) {
     var order =
         orderRepo.findDetailedById(id).orElseThrow(() -> new NotFoundException("order", id));

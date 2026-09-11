@@ -23,6 +23,9 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
 
   List<Inventory> findByProduct_Id(long productId);
 
+  @EntityGraph(attributePaths = {"product", "warehouse"})
+  List<Inventory> findByProductId(long productId);
+
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   @QueryHints(@QueryHint(name = "jakarta.persistence.lock.timeout", value = "3000"))
   @Query(

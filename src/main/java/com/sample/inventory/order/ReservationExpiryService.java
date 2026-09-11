@@ -7,6 +7,7 @@ import com.sample.inventory.movement.MovementWriter;
 import java.time.Instant;
 import java.util.HashSet;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +21,7 @@ public class ReservationExpiryService {
   private final SalesOrderRepository orderRepo;
 
   @Transactional
+  @CacheEvict(value = "inv", allEntries = true)
   public int expireBatch(Instant now) {
     var due = reservationRepo.lockDue(now, 500);
     for (var r : due) {

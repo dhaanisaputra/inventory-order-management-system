@@ -26,6 +26,18 @@ spring:
       port: ${SPRING_REDIS_PORT:6379}
   kafka:
     bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    consumer:
+      group-id: inventory-alerts
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+  cache:
+    type: redis
+    redis:
+      time-to-live: 30s
+      key-prefix: ""
 
 management:
   endpoints:
@@ -35,3 +47,5 @@ management:
 app:
   reservation:
     ttl: PT30M
+  outbox:
+    relay-interval: PT10S

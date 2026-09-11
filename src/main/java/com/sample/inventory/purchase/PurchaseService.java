@@ -13,6 +13,7 @@ import com.sample.inventory.warehouse.WarehouseRepository;
 import java.util.Comparator;
 import java.util.HashSet;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -60,6 +61,7 @@ public class PurchaseService {
   }
 
   @Transactional
+  @CacheEvict(value = "inv", allEntries = true)
   public PurchaseResponse receive(long id, ReceiveRequest req) {
     var po = poRepo.lockById(id).orElseThrow(() -> new NotFoundException("purchase order", id));
     if (po.getStatus() != PurchaseOrderStatus.OPEN) {

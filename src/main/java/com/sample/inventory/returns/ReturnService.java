@@ -12,6 +12,7 @@ import com.sample.inventory.order.AllocationRepository;
 import java.util.Comparator;
 import java.util.HashSet;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -29,6 +30,7 @@ public class ReturnService {
   private final MovementWriter movements;
 
   @Transactional
+  @CacheEvict(value = "inv", allEntries = true)
   public ReturnResponse create(CreateReturnRequest req) {
     var seen = new HashSet<Long>();
     for (var l : req.lines()) {

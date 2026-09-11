@@ -5,6 +5,7 @@ import com.sample.inventory.common.error.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,7 +21,11 @@ public class ProductService {
     if (repo.existsBySku(req.sku())) {
       throw new DuplicateException("product", req.sku());
     }
-    return ProductMapper.toResponse(repo.save(new Product(req.sku(), req.name())));
+    try {
+      return ProductMapper.toResponse(repo.save(new Product(req.sku(), req.name())));
+    } catch (DataIntegrityViolationException e) {
+      throw new DuplicateException("product", req.sku());
+    }
   }
 
   public ProductResponse get(Long id) {
@@ -38,8 +43,8 @@ public class ProductService {
   @Transactional
   public ProductResponse update(Long id, UpdateProductRequest req) {
     Product p = repo.findById(id).orElseThrow(() -> new NotFoundException("product", id));
-    if (req.name() != null) {
-      p.rename(req.name());
+    if (req.name() != null && !req.name().isBlank()) {
+      p.rename(req.name().strip());
     }
     if (Boolean.FALSE.equals(req.active())) {
       p.deactivate();

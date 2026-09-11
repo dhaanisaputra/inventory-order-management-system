@@ -5,6 +5,7 @@ import com.sample.inventory.common.error.NotFoundException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,8 +21,12 @@ public class WarehouseService {
     if (repo.existsByCode(req.code())) {
       throw new DuplicateException("warehouse", req.code());
     }
-    return WarehouseMapper.toResponse(
-        repo.save(new Warehouse(req.code(), req.name(), req.priority())));
+    try {
+      return WarehouseMapper.toResponse(
+          repo.save(new Warehouse(req.code(), req.name(), req.priority())));
+    } catch (DataIntegrityViolationException e) {
+      throw new DuplicateException("warehouse", req.code());
+    }
   }
 
   public WarehouseResponse get(Long id) {
@@ -39,8 +44,8 @@ public class WarehouseService {
   @Transactional
   public WarehouseResponse update(Long id, UpdateWarehouseRequest req) {
     Warehouse w = repo.findById(id).orElseThrow(() -> new NotFoundException("warehouse", id));
-    if (req.name() != null) {
-      w.rename(req.name());
+    if (req.name() != null && !req.name().isBlank()) {
+      w.rename(req.name().strip());
     }
     if (req.priority() != null) {
       w.reprioritize(req.priority());

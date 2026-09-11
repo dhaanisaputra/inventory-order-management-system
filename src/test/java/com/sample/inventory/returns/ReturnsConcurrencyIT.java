@@ -56,8 +56,9 @@ class ReturnsConcurrencyIT {
     var p = productRepo.save(new Product("SKU-" + System.nanoTime(), "Keyboard"));
     var w = warehouseRepo.save(new Warehouse("W-" + System.nanoTime(), "W", 1));
     invRepo.save(new Inventory(p, w, 5, 0, 1));
-    var order = orders.create(
-        new CreateOrderRequest(List.of(new CreateOrderLine(p.getId(), 3))), null, null);
+    var order =
+        orders.create(
+            new CreateOrderRequest(List.of(new CreateOrderLine(p.getId(), 3))), null, null);
     allocationId = order.lines().get(0).allocations().get(0).id();
   }
 
@@ -68,8 +69,10 @@ class ReturnsConcurrencyIT {
     var wins = new AtomicInteger();
     var fails = new AtomicInteger();
     try (var pool = Executors.newFixedThreadPool(2)) {
-      List<Future<?>> futures = List.of(pool.submit(() -> attempt(gate, done, wins, fails)),
-          pool.submit(() -> attempt(gate, done, wins, fails)));
+      List<Future<?>> futures =
+          List.of(
+              pool.submit(() -> attempt(gate, done, wins, fails)),
+              pool.submit(() -> attempt(gate, done, wins, fails)));
       gate.countDown();
       done.await();
       for (var f : futures) {
@@ -80,8 +83,8 @@ class ReturnsConcurrencyIT {
     assertThat(fails.get()).isEqualTo(1);
   }
 
-  private void attempt(CountDownLatch gate, CountDownLatch done,
-      AtomicInteger wins, AtomicInteger fails) {
+  private void attempt(
+      CountDownLatch gate, CountDownLatch done, AtomicInteger wins, AtomicInteger fails) {
     try {
       gate.await();
       returns.create(new CreateReturnRequest(List.of(new CreateReturnLine(allocationId, 2))));

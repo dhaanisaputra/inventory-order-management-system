@@ -46,8 +46,10 @@ class PurchaseConcurrencyIT {
     p = productRepo.save(new Product("SKU-" + System.nanoTime(), "Keyboard"));
     w = warehouseRepo.save(new Warehouse("W-" + System.nanoTime(), "W", 1));
     invRepo.save(new Inventory(p, w, 0, 0, 5));
-    poId = purchases.create(new CreatePurchaseRequest(
-        List.of(new CreatePurchaseLine(p.getId(), 5)))).id();
+    poId =
+        purchases
+            .create(new CreatePurchaseRequest(List.of(new CreatePurchaseLine(p.getId(), 5))))
+            .id();
   }
 
   @Test
@@ -57,8 +59,10 @@ class PurchaseConcurrencyIT {
     var wins = new AtomicInteger();
     var fails = new AtomicInteger();
     try (var pool = Executors.newFixedThreadPool(2)) {
-      List<Future<?>> futures = List.of(pool.submit(() -> attempt(gate, done, wins, fails)),
-          pool.submit(() -> attempt(gate, done, wins, fails)));
+      List<Future<?>> futures =
+          List.of(
+              pool.submit(() -> attempt(gate, done, wins, fails)),
+              pool.submit(() -> attempt(gate, done, wins, fails)));
       gate.countDown();
       done.await();
       for (var f : futures) {
@@ -71,12 +75,12 @@ class PurchaseConcurrencyIT {
     assertThat(inv.getAvailable()).isEqualTo(5);
   }
 
-  private void attempt(CountDownLatch gate, CountDownLatch done,
-      AtomicInteger wins, AtomicInteger fails) {
+  private void attempt(
+      CountDownLatch gate, CountDownLatch done, AtomicInteger wins, AtomicInteger fails) {
     try {
       gate.await();
-      purchases.receive(poId, new ReceiveRequest(
-          List.of(new ReceiveItem(p.getId(), w.getId(), 5))));
+      purchases.receive(
+          poId, new ReceiveRequest(List.of(new ReceiveItem(p.getId(), w.getId(), 5))));
       wins.incrementAndGet();
     } catch (Exception e) {
       fails.incrementAndGet();

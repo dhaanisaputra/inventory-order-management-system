@@ -30,7 +30,8 @@ public class ProductController {
   private final ProductService service;
 
   @PostMapping
-  public ResponseEntity<ApiResponse<ProductResponse>> create(@Valid @RequestBody ProductRequest req) {
+  public ResponseEntity<ApiResponse<ProductResponse>> create(
+      @Valid @RequestBody ProductRequest req) {
     return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(service.create(req)));
   }
 

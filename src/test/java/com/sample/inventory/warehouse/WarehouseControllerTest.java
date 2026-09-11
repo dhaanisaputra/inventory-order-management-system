@@ -24,9 +24,10 @@ class WarehouseControllerTest {
   @Test
   void createReturns201Wrapped() throws Exception {
     when(service.create(any())).thenReturn(new WarehouseResponse(1L, "JKT-1", "Jakarta", 10));
-    mvc.perform(post("/api/v1/warehouses")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("{\"code\":\"JKT-1\",\"name\":\"Jakarta\",\"priority\":10}"))
+    mvc.perform(
+            post("/api/v1/warehouses")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"code\":\"JKT-1\",\"name\":\"Jakarta\",\"priority\":10}"))
         .andExpect(status().isCreated())
         .andExpect(jsonPath("$.data.code").value("JKT-1"));
   }

@@ -12,7 +12,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
   boolean existsBySku(String sku);
 
-  @Query("select p from Product p where lower(p.sku) like lower(concat('%', :q, '%'))"
-      + " or lower(p.name) like lower(concat('%', :q, '%'))")
+  @Query(
+      "select p from Product p where lower(p.sku) like lower(concat('%', :q, '%'))"
+          + " or lower(p.name) like lower(concat('%', :q, '%'))")
   Page<Product> search(String q, Pageable pageable);
 }

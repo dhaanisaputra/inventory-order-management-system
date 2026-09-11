@@ -20,11 +20,13 @@ public class WarehouseService {
     if (repo.existsByCode(req.code())) {
       throw new DuplicateException("warehouse", req.code());
     }
-    return WarehouseMapper.toResponse(repo.save(new Warehouse(req.code(), req.name(), req.priority())));
+    return WarehouseMapper.toResponse(
+        repo.save(new Warehouse(req.code(), req.name(), req.priority())));
   }
 
   public WarehouseResponse get(Long id) {
-    return repo.findById(id).map(WarehouseMapper::toResponse)
+    return repo.findById(id)
+        .map(WarehouseMapper::toResponse)
         .orElseThrow(() -> new NotFoundException("warehouse", id));
   }
 

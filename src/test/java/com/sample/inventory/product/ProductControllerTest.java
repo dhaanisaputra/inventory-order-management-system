@@ -27,9 +27,10 @@ class ProductControllerTest {
   @Test
   void createReturns201Wrapped() throws Exception {
     when(service.create(any())).thenReturn(new ProductResponse(1L, "SKU-1", "Keyboard", true));
-    mvc.perform(post("/api/v1/products")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("{\"sku\":\"SKU-1\",\"name\":\"Keyboard\"}"))
+    mvc.perform(
+            post("/api/v1/products")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"sku\":\"SKU-1\",\"name\":\"Keyboard\"}"))
         .andExpect(status().isCreated())
         .andExpect(jsonPath("$.data.sku").value("SKU-1"))
         .andExpect(jsonPath("$.error").isEmpty());
@@ -47,9 +48,10 @@ class ProductControllerTest {
 
   @Test
   void invalidBodyReturns400() throws Exception {
-    mvc.perform(post("/api/v1/products")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("{\"sku\":\"\",\"name\":\"x\"}"))
+    mvc.perform(
+            post("/api/v1/products")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"sku\":\"\",\"name\":\"x\"}"))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.error.code").value("VALIDATION"));
   }

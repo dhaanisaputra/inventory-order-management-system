@@ -10,8 +10,9 @@ public final class SortValidator {
   private SortValidator() {}
 
   public static Pageable validated(Pageable pageable, Set<String> allowed, Sort defaultSort) {
-    boolean ok = pageable.getSort().isSorted()
-        && pageable.getSort().stream().map(Sort.Order::getProperty).allMatch(allowed::contains);
+    boolean ok =
+        pageable.getSort().isSorted()
+            && pageable.getSort().stream().map(Sort.Order::getProperty).allMatch(allowed::contains);
     if (ok) {
       return pageable;
     }

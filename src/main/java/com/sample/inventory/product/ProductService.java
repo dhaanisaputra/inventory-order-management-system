@@ -24,7 +24,8 @@ public class ProductService {
   }
 
   public ProductResponse get(Long id) {
-    return repo.findById(id).map(ProductMapper::toResponse)
+    return repo.findById(id)
+        .map(ProductMapper::toResponse)
         .orElseThrow(() -> new NotFoundException("product", id));
   }
 

@@ -13,14 +13,16 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(DomainException.class)
   public ResponseEntity<ApiResponse<Void>> handleDomain(DomainException ex) {
     ErrorCode code = ex.getCode();
-    return ResponseEntity.status(code.httpStatus()).body(ApiResponse.fail(code.name(), ex.getMessage()));
+    return ResponseEntity.status(code.httpStatus())
+        .body(ApiResponse.fail(code.name(), ex.getMessage()));
   }
 
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseEntity<ApiResponse<Void>> handleValidation(MethodArgumentNotValidException ex) {
-    String message = ex.getBindingResult().getFieldErrors().stream()
-        .map(e -> e.getField() + " " + e.getDefaultMessage())
-        .collect(Collectors.joining("; "));
+    String message =
+        ex.getBindingResult().getFieldErrors().stream()
+            .map(e -> e.getField() + " " + e.getDefaultMessage())
+            .collect(Collectors.joining("; "));
     return ResponseEntity.badRequest().body(ApiResponse.fail(ErrorCode.VALIDATION.name(), message));
   }
 

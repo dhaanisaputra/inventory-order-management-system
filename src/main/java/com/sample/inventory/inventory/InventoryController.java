@@ -30,8 +30,12 @@ public class InventoryController {
       @RequestParam(required = false) Long warehouseId,
       @RequestParam(defaultValue = "false") boolean lowStockOnly,
       Pageable pageable) {
-    var page = service.search(productId, warehouseId, lowStockOnly,
-        SortValidator.validated(pageable, SORTABLE, DEFAULT_SORT));
+    var page =
+        service.search(
+            productId,
+            warehouseId,
+            lowStockOnly,
+            SortValidator.validated(pageable, SORTABLE, DEFAULT_SORT));
     return ResponseEntity.ok(ApiResponse.ok(PagedResult.from(page)));
   }
 

@@ -31,7 +31,9 @@ public class GlobalExceptionHandler {
   @ExceptionHandler({PessimisticLockException.class, LockTimeoutException.class})
   public ResponseEntity<ApiResponse<Void>> handleContention(RuntimeException ex) {
     return ResponseEntity.status(ErrorCode.STOCK_CONTENTION.httpStatus())
-        .body(ApiResponse.fail(ErrorCode.STOCK_CONTENTION.name(), ErrorCode.STOCK_CONTENTION.format()));
+        .body(
+            ApiResponse.fail(
+                ErrorCode.STOCK_CONTENTION.name(), ErrorCode.STOCK_CONTENTION.format()));
   }
 
   @ExceptionHandler(Exception.class)

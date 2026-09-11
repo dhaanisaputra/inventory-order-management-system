@@ -52,7 +52,8 @@ class OrderConfirmCancelIT {
   }
 
   private OrderResponse pendingOrder(int qty) {
-    return orders.create(new CreateOrderRequest(List.of(new CreateOrderLine(p.getId(), qty))), null, null);
+    return orders.create(
+        new CreateOrderRequest(List.of(new CreateOrderLine(p.getId(), qty))), null, null);
   }
 
   @Test
@@ -63,7 +64,8 @@ class OrderConfirmCancelIT {
     var inv = invRepo.lockOne(p.getId(), w.getId()).orElseThrow();
     assertThat(inv.getAvailable()).isEqualTo(3);
     assertThat(inv.getReserved()).isEqualTo(0);
-    assertThat(movementRepo.findAll()).extracting(m -> m.getType())
+    assertThat(movementRepo.findAll())
+        .extracting(m -> m.getType())
         .containsExactlyInAnyOrder(MovementType.RESERVE, MovementType.OUT);
   }
 
@@ -85,7 +87,8 @@ class OrderConfirmCancelIT {
     var inv = invRepo.lockOne(p.getId(), w.getId()).orElseThrow();
     assertThat(inv.getAvailable()).isEqualTo(5);
     assertThat(inv.getReserved()).isEqualTo(0);
-    assertThat(movementRepo.findAll()).extracting(m -> m.getType())
+    assertThat(movementRepo.findAll())
+        .extracting(m -> m.getType())
         .containsExactlyInAnyOrder(MovementType.RESERVE, MovementType.RELEASE);
   }
 

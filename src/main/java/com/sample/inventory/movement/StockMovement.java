@@ -54,8 +54,13 @@ public class StockMovement {
   @Column(name = "created_at", nullable = false, updatable = false)
   private Instant createdAt;
 
-  public static StockMovement of(Product product, Warehouse warehouse, MovementType type,
-      int qty, String refType, long refId) {
+  public static StockMovement of(
+      Product product,
+      Warehouse warehouse,
+      MovementType type,
+      int qty,
+      String refType,
+      long refId) {
     StockMovement m = new StockMovement();
     m.product = product;
     m.warehouse = warehouse;

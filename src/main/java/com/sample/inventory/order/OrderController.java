@@ -54,8 +54,8 @@ public class OrderController {
     if (from != null && to != null && from.isAfter(to)) {
       throw new DomainException(ErrorCode.VALIDATION);
     }
-    var page = service.search(status, from, to,
-        SortValidator.validated(pageable, SORTABLE, DEFAULT_SORT));
+    var page =
+        service.search(status, from, to, SortValidator.validated(pageable, SORTABLE, DEFAULT_SORT));
     return ResponseEntity.ok(ApiResponse.ok(PagedResult.from(page)));
   }
 

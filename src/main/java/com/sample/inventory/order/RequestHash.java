@@ -11,13 +11,14 @@ public final class RequestHash {
 
   public static String of(CreateOrderRequest req) {
     try {
-      var canonical = req.lines().stream()
-          .sorted(Comparator.comparing(CreateOrderRequest.CreateOrderLine::productId))
-          .map(l -> l.productId() + ":" + l.qty())
-          .reduce((a, b) -> a + "|" + b)
-          .orElse("");
-      var digest = MessageDigest.getInstance("SHA-256")
-          .digest(canonical.getBytes(StandardCharsets.UTF_8));
+      var canonical =
+          req.lines().stream()
+              .sorted(Comparator.comparing(CreateOrderRequest.CreateOrderLine::productId))
+              .map(l -> l.productId() + ":" + l.qty())
+              .reduce((a, b) -> a + "|" + b)
+              .orElse("");
+      var digest =
+          MessageDigest.getInstance("SHA-256").digest(canonical.getBytes(StandardCharsets.UTF_8));
       return HexFormat.of().formatHex(digest);
     } catch (Exception e) {
       throw new IllegalStateException("hash failed", e);

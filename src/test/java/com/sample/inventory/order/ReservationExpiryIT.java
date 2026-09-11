@@ -53,17 +53,18 @@ class ReservationExpiryIT {
 
   @Test
   void expiredReservationRestoresStock() throws Exception {
-    var created = orders.create(
-        new CreateOrderRequest(List.of(new CreateOrderLine(p.getId(), 2))), null, null);
+    var created =
+        orders.create(
+            new CreateOrderRequest(List.of(new CreateOrderLine(p.getId(), 2))), null, null);
     Thread.sleep(1200);
     int n = expiry.expireBatch(Instant.now());
     assertThat(n).isEqualTo(1);
     var inv = invRepo.findByProduct_Id(p.getId()).get(0);
     assertThat(inv.getAvailable()).isEqualTo(5);
     assertThat(inv.getReserved()).isEqualTo(0);
-    assertThat(reservationRepo.findAll().get(0).getStatus())
-        .isEqualTo(ReservationStatus.EXPIRED);
-    assertThat(movementRepo.findAll()).extracting(m -> m.getType())
+    assertThat(reservationRepo.findAll().get(0).getStatus()).isEqualTo(ReservationStatus.EXPIRED);
+    assertThat(movementRepo.findAll())
+        .extracting(m -> m.getType())
         .containsExactlyInAnyOrder(MovementType.RESERVE, MovementType.RELEASE);
     assertThat(orders.get(created.id()).status()).isEqualTo(OrderStatus.PENDING);
   }

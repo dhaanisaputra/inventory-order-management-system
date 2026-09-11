@@ -15,12 +15,13 @@ public class InventoryService {
   private final InventoryRepository repo;
 
   public InventoryResponse get(long id) {
-    return repo.findById(id).map(InventoryMapper::toResponse)
+    return repo.findById(id)
+        .map(InventoryMapper::toResponse)
         .orElseThrow(() -> new NotFoundException("inventory", id));
   }
 
-  public Page<InventoryResponse> search(Long productId, Long warehouseId, boolean lowOnly,
-      Pageable pageable) {
+  public Page<InventoryResponse> search(
+      Long productId, Long warehouseId, boolean lowOnly, Pageable pageable) {
     return repo.search(productId, warehouseId, lowOnly, pageable).map(InventoryMapper::toResponse);
   }
 }

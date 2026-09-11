@@ -54,7 +54,8 @@ public class Inventory {
   @Column(name = "updated_at", nullable = false)
   private Instant updatedAt;
 
-  public Inventory(Product product, Warehouse warehouse, int available, int reserved, int lowStockThreshold) {
+  public Inventory(
+      Product product, Warehouse warehouse, int available, int reserved, int lowStockThreshold) {
     this.product = product;
     this.warehouse = warehouse;
     this.available = available;

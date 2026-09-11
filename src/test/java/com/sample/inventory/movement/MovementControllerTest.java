@@ -25,8 +25,18 @@ class MovementControllerTest {
 
   @Test
   void searchReturnsPagedMovements() throws Exception {
-    var dto = new MovementResponse(1L, 2L, "KB-100", 3L, "JKT-1",
-        MovementType.RESERVE, 5, "ORDER", 9L, Instant.parse("2026-09-11T00:00:00Z"));
+    var dto =
+        new MovementResponse(
+            1L,
+            2L,
+            "KB-100",
+            3L,
+            "JKT-1",
+            MovementType.RESERVE,
+            5,
+            "ORDER",
+            9L,
+            Instant.parse("2026-09-11T00:00:00Z"));
     var page = new PageImpl<>(List.of(dto));
     when(service.search(isNull(), isNull(), isNull(), isNull(), isNull(), any(Pageable.class)))
         .thenReturn(page);

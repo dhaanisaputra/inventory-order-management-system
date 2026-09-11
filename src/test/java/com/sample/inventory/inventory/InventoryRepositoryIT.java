@@ -29,8 +29,7 @@ class InventoryRepositoryIT {
     invRepo.save(new Inventory(p, low, 10, 0, 0));
     invRepo.save(new Inventory(p, high, 10, 0, 0));
     List<Inventory> got = invRepo.lockAvailable(p.getId());
-    assertThat(got).extracting(i -> i.getWarehouse().getCode())
-        .containsExactly("HIGH", "LOW");
+    assertThat(got).extracting(i -> i.getWarehouse().getCode()).containsExactly("HIGH", "LOW");
   }
 
   @Test

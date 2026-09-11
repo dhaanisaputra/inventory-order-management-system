@@ -3,9 +3,9 @@ package com.sample.inventory.product;
 import com.sample.inventory.common.error.DuplicateException;
 import com.sample.inventory.common.error.NotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

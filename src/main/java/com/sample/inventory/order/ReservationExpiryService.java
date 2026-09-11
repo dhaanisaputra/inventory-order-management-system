@@ -23,13 +23,23 @@ public class ReservationExpiryService {
     for (var r : due) {
       var alloc = r.getAllocation();
       var line = alloc.getOrderLine();
-      var inv = invRepo.lockOne(line.getProduct().getId(), alloc.getWarehouse().getId())
-          .orElseThrow(() -> new NotFoundException("inventory",
-              line.getProduct().getId() + "/" + alloc.getWarehouse().getId()));
+      var inv =
+          invRepo
+              .lockOne(line.getProduct().getId(), alloc.getWarehouse().getId())
+              .orElseThrow(
+                  () ->
+                      new NotFoundException(
+                          "inventory",
+                          line.getProduct().getId() + "/" + alloc.getWarehouse().getId()));
       inv.release(r.getQty());
       r.expire();
-      movements.write(line.getProduct(), alloc.getWarehouse(), MovementType.RELEASE,
-          r.getQty(), "ORDER", line.getOrder().getId());
+      movements.write(
+          line.getProduct(),
+          alloc.getWarehouse(),
+          MovementType.RELEASE,
+          r.getQty(),
+          "ORDER",
+          line.getOrder().getId());
     }
     return due.size();
   }

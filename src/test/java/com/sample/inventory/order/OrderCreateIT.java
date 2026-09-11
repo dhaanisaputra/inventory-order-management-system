@@ -54,7 +54,9 @@ class OrderCreateIT {
 
   @Test
   void splitsByPriorityAndReserves() {
-    var res = orders.create(new CreateOrderRequest(List.of(new CreateOrderLine(p.getId(), 5))), null, null);
+    var res =
+        orders.create(
+            new CreateOrderRequest(List.of(new CreateOrderLine(p.getId(), 5))), null, null);
     assertThat(res.status()).isEqualTo(OrderStatus.PENDING);
     assertThat(res.lines()).hasSize(1);
     var allocs = res.lines().get(0).allocations();
@@ -64,22 +66,29 @@ class OrderCreateIT {
     assertThat(allocs.get(1).warehouseCode()).isEqualTo(low.getCode());
     assertThat(allocs.get(1).qty()).isEqualTo(2);
     var inv = invRepo.findByProduct_Id(p.getId());
-    assertThat(inv).extracting(i -> i.getAvailable() + i.getReserved())
+    assertThat(inv)
+        .extracting(i -> i.getAvailable() + i.getReserved())
         .containsExactlyInAnyOrder(3, 10);
     assertThat(movementRepo.count()).isEqualTo(2);
-    assertThat(movementRepo.findAll()).extracting(m -> m.getType())
+    assertThat(movementRepo.findAll())
+        .extracting(m -> m.getType())
         .containsOnly(MovementType.RESERVE);
   }
 
   @Test
   void insufficientStockRollsBackFully() {
-    assertThatThrownBy(() -> orders.create(
-        new CreateOrderRequest(List.of(new CreateOrderLine(p.getId(), 99))), null, null))
+    assertThatThrownBy(
+            () ->
+                orders.create(
+                    new CreateOrderRequest(List.of(new CreateOrderLine(p.getId(), 99))),
+                    null,
+                    null))
         .isInstanceOf(InsufficientStockException.class);
     assertThat(orderRepo.count()).isZero();
     assertThat(movementRepo.count()).isZero();
     assertThat(invRepo.findByProduct_Id(p.getId()))
-        .extracting(i -> i.getReserved()).containsOnly(0);
+        .extracting(i -> i.getReserved())
+        .containsOnly(0);
   }
 
   @Test

@@ -14,8 +14,13 @@ public class MovementWriter {
   private final StockMovementRepository repo;
 
   @Transactional(propagation = Propagation.MANDATORY)
-  public void write(Product product, Warehouse warehouse, MovementType type,
-      int qty, String refType, long refId) {
+  public void write(
+      Product product,
+      Warehouse warehouse,
+      MovementType type,
+      int qty,
+      String refType,
+      long refId) {
     repo.save(StockMovement.of(product, warehouse, type, qty, refType, refId));
   }
 }

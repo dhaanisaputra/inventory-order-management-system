@@ -9,7 +9,8 @@ public enum ErrorCode {
   STOCK_CONTENTION(409, "stock contention, please retry"),
   INVALID_TRANSITION(409, "order {0} cannot transition from {1}"),
   IDEMPOTENCY_KEY_CONFLICT(422, "idempotency key reused with different payload"),
-  OVER_RECEIVE(400, "over-receive on purchase line {0}");
+  OVER_RECEIVE(400, "over-receive on purchase line {0}"),
+  RETURN_EXCEEDED(400, "return exceeds allocated {0}");
 
   private final int httpStatus;
   private final String template;

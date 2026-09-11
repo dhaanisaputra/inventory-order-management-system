@@ -45,7 +45,7 @@ Redis `:6379`, Kafka `:9092`. Health: `/actuator/health`.
 ## Project structure (planned)
 
 ```
-src/main/java/com/dhaanisaputra/inventory/
+src/main/java/com/sample/inventory/
   product/ warehouse/ inventory/ order/ reservation/
   purchase/ returns/ alert/ movement/ common/
 ```

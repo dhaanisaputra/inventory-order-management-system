@@ -5,6 +5,9 @@ spring:
   cache:
     type: simple
 app:
+  kafka:
+    topics:
+      create: false
   reservation:
     ttl: PT30M
   outbox:

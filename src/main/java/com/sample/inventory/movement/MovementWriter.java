@@ -26,8 +26,21 @@ public class MovementWriter {
       String refType,
       long refId) {
     repo.save(StockMovement.of(product, warehouse, type, qty, refType, refId));
-    outbox.write(KafkaTopics.STOCK_MOVEMENT, String.valueOf(product.getId()),
-        Map.of("productId", product.getId(), "warehouseId", warehouse.getId(),
-            "type", type.name(), "qty", qty, "refType", refType, "refId", refId));
+    outbox.write(
+        KafkaTopics.STOCK_MOVEMENT,
+        String.valueOf(product.getId()),
+        Map.of(
+            "productId",
+            product.getId(),
+            "warehouseId",
+            warehouse.getId(),
+            "type",
+            type.name(),
+            "qty",
+            qty,
+            "refType",
+            refType,
+            "refId",
+            refId));
   }
 }

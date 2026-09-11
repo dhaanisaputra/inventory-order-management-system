@@ -7,7 +7,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import tools.jackson.databind.ObjectMapper;
 import com.sample.inventory.inventory.Inventory;
 import com.sample.inventory.product.Product;
 import com.sample.inventory.warehouse.Warehouse;
@@ -18,6 +17,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
+import tools.jackson.databind.ObjectMapper;
 
 @ExtendWith(MockitoExtension.class)
 class LowStockNotifierTest {
@@ -55,7 +55,6 @@ class LowStockNotifierTest {
   void brokerFailureIsSwallowed() {
     when(kafka.send(anyString(), anyString(), anyString()))
         .thenReturn(CompletableFuture.failedFuture(new RuntimeException("down")));
-    assertThatNoException()
-        .isThrownBy(() -> notifier().notifyIfLow(inv(1, 5)));
+    assertThatNoException().isThrownBy(() -> notifier().notifyIfLow(inv(1, 5)));
   }
 }

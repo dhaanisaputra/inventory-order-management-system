@@ -29,8 +29,6 @@ public class InventoryService {
 
   @Cacheable(value = "inv", key = "#productId")
   public List<InventoryResponse> getByProduct(long productId) {
-    return repo.findByProductId(productId).stream()
-        .map(InventoryMapper::toResponse)
-        .toList();
+    return repo.findByProductId(productId).stream().map(InventoryMapper::toResponse).toList();
   }
 }

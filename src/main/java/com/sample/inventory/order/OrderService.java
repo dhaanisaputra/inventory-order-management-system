@@ -109,7 +109,9 @@ public class OrderService {
         return get(existing.getOrder().getId());
       }
     }
-    outbox.write(KafkaTopics.ORDER_CREATED, String.valueOf(order.getId()),
+    outbox.write(
+        KafkaTopics.ORDER_CREATED,
+        String.valueOf(order.getId()),
         Map.of("orderId", order.getId(), "status", order.getStatus().name()));
     return get(order.getId());
   }
@@ -137,7 +139,9 @@ public class OrderService {
       return OrderMapper.toResponse(order);
     }
     order.confirm();
-    outbox.write(KafkaTopics.ORDER_CONFIRMED, String.valueOf(order.getId()),
+    outbox.write(
+        KafkaTopics.ORDER_CONFIRMED,
+        String.valueOf(order.getId()),
         Map.of("orderId", order.getId(), "status", order.getStatus().name()));
     Map<Long, Reservation> resByAlloc = new HashMap<>();
     for (var r : reservationRepo.lockByOrderId(id)) {
@@ -182,7 +186,9 @@ public class OrderService {
     var order =
         orderRepo.findDetailedById(id).orElseThrow(() -> new NotFoundException("order", id));
     order.cancel();
-    outbox.write(KafkaTopics.ORDER_CANCELLED, String.valueOf(order.getId()),
+    outbox.write(
+        KafkaTopics.ORDER_CANCELLED,
+        String.valueOf(order.getId()),
         Map.of("orderId", order.getId(), "status", order.getStatus().name()));
     Map<Long, Reservation> resByAlloc = new HashMap<>();
     for (var r : reservationRepo.lockByOrderId(id)) {

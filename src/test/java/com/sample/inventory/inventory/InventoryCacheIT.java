@@ -53,10 +53,10 @@ class InventoryCacheIT {
     var before = inventories.getByProduct(p.getId());
     assertThat(before.get(0).available()).isZero();
     assertThat(cacheManager.getCache("inv").get(p.getId())).isNotNull();
-    var po = purchases.create(new CreatePurchaseRequest(
-        List.of(new CreatePurchaseLine(p.getId(), 7))));
-    purchases.receive(po.id(), new ReceiveRequest(
-        List.of(new ReceiveItem(p.getId(), w.getId(), 7))));
+    var po =
+        purchases.create(new CreatePurchaseRequest(List.of(new CreatePurchaseLine(p.getId(), 7))));
+    purchases.receive(
+        po.id(), new ReceiveRequest(List.of(new ReceiveItem(p.getId(), w.getId(), 7))));
     var after = inventories.getByProduct(p.getId());
     assertThat(after.get(0).available()).isEqualTo(7);
   }

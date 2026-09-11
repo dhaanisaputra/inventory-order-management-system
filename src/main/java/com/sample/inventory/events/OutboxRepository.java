@@ -6,7 +6,10 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface OutboxRepository extends JpaRepository<OutboxEvent, Long> {
 
-  @Query(value = "SELECT * FROM outbox WHERE published_at IS NULL"
-      + " ORDER BY id LIMIT :limit FOR UPDATE SKIP LOCKED", nativeQuery = true)
+  @Query(
+      value =
+          "SELECT * FROM outbox WHERE published_at IS NULL"
+              + " ORDER BY id LIMIT :limit FOR UPDATE SKIP LOCKED",
+      nativeQuery = true)
   List<OutboxEvent> lockUnpublished(int limit);
 }

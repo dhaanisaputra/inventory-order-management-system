@@ -8,7 +8,7 @@ class LowStockAlertListenerTest {
 
   @Test
   void listenerAcceptsPayloadWithoutThrowing() {
-    assertThatNoException().isThrownBy(
-        () -> new LowStockAlertListener().onMessage("{\"productId\":11}"));
+    assertThatNoException()
+        .isThrownBy(() -> new LowStockAlertListener().onMessage("{\"productId\":11}"));
   }
 }

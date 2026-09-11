@@ -1,12 +1,12 @@
 package com.sample.inventory.events;
 
-import tools.jackson.databind.ObjectMapper;
 import com.sample.inventory.inventory.Inventory;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import tools.jackson.databind.ObjectMapper;
 
 @Service
 @RequiredArgsConstructor
@@ -22,9 +22,15 @@ public class LowStockNotifier {
       return;
     }
     try {
-      var event = new LowStockEvent(inv.getProduct().getId(), inv.getWarehouse().getId(),
-          inv.getAvailable(), inv.getLowStockThreshold());
-      kafka.send(KafkaTopics.STOCK_LOW, String.valueOf(inv.getProduct().getId()),
+      var event =
+          new LowStockEvent(
+              inv.getProduct().getId(),
+              inv.getWarehouse().getId(),
+              inv.getAvailable(),
+              inv.getLowStockThreshold());
+      kafka.send(
+          KafkaTopics.STOCK_LOW,
+          String.valueOf(inv.getProduct().getId()),
           objectMapper.writeValueAsString(event));
     } catch (Exception e) {
       log.warn("Failed to publish low-stock event", e);

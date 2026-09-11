@@ -58,4 +58,14 @@ public class OrderController {
         SortValidator.validated(pageable, SORTABLE, DEFAULT_SORT));
     return ResponseEntity.ok(ApiResponse.ok(PagedResult.from(page)));
   }
+
+  @PostMapping("/{id}/confirm")
+  public ResponseEntity<ApiResponse<OrderResponse>> confirm(@PathVariable long id) {
+    return ResponseEntity.ok(ApiResponse.ok(service.confirm(id)));
+  }
+
+  @PostMapping("/{id}/cancel")
+  public ResponseEntity<ApiResponse<OrderResponse>> cancel(@PathVariable long id) {
+    return ResponseEntity.ok(ApiResponse.ok(service.cancel(id)));
+  }
 }

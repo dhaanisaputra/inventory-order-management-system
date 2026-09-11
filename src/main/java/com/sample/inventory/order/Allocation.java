@@ -44,4 +44,8 @@ public class Allocation {
     this.warehouse = warehouse;
     this.qty = qty;
   }
+
+  void linkReservation(Reservation reservation) {
+    this.reservation = reservation;
+  }
 }

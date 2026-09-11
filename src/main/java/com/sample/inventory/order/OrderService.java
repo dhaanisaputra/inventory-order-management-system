@@ -76,6 +76,7 @@ public class OrderService {
     orderRepo.saveAndFlush(order);
     for (var p : pending) {
       reservationRepo.save(p.reservation());
+      p.allocation().linkReservation(p.reservation());
       movements.write(p.allocation().getOrderLine().getProduct(), p.allocation().getWarehouse(),
           MovementType.RESERVE, p.allocation().getQty(), "ORDER", order.getId());
     }
@@ -100,5 +101,46 @@ public class OrderService {
 
   public Page<OrderResponse> search(OrderStatus status, Instant from, Instant to, Pageable pageable) {
     return orderRepo.search(status, from, to, pageable).map(OrderMapper::toResponse);
+  }
+
+  @Transactional
+  public OrderResponse confirm(long id) {
+    var order = orderRepo.findDetailedById(id)
+        .orElseThrow(() -> new NotFoundException("order", id));
+    if (order.getStatus() == OrderStatus.CONFIRMED) {
+      return OrderMapper.toResponse(order);
+    }
+    order.confirm();
+    for (var line : order.getLines()) {
+      for (var alloc : line.getAllocations()) {
+        var inv = invRepo.lockOne(line.getProduct().getId(), alloc.getWarehouse().getId())
+            .orElseThrow(() -> new NotFoundException("inventory",
+                line.getProduct().getId() + "/" + alloc.getWarehouse().getId()));
+        inv.confirm(alloc.getQty());
+        alloc.getReservation().confirm();
+        movements.write(line.getProduct(), alloc.getWarehouse(), MovementType.OUT,
+            alloc.getQty(), "ORDER", order.getId());
+      }
+    }
+    return OrderMapper.toResponse(order);
+  }
+
+  @Transactional
+  public OrderResponse cancel(long id) {
+    var order = orderRepo.findDetailedById(id)
+        .orElseThrow(() -> new NotFoundException("order", id));
+    order.cancel();
+    for (var line : order.getLines()) {
+      for (var alloc : line.getAllocations()) {
+        var inv = invRepo.lockOne(line.getProduct().getId(), alloc.getWarehouse().getId())
+            .orElseThrow(() -> new NotFoundException("inventory",
+                line.getProduct().getId() + "/" + alloc.getWarehouse().getId()));
+        inv.release(alloc.getQty());
+        alloc.getReservation().cancel();
+        movements.write(line.getProduct(), alloc.getWarehouse(), MovementType.RELEASE,
+            alloc.getQty(), "ORDER", order.getId());
+      }
+    }
+    return OrderMapper.toResponse(order);
   }
 }

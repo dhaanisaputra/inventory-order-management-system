@@ -32,3 +32,6 @@ management:
     web:
       exposure:
         include: health,info
+app:
+  reservation:
+    ttl: PT30M

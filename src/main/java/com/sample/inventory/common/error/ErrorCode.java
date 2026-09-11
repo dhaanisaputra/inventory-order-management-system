@@ -5,7 +5,10 @@ public enum ErrorCode {
   NOT_FOUND(404, "resource not found"),
   DUPLICATE(409, "{0} already exists"),
   INTERNAL(500, "internal error"),
-  INVALID_TRANSITION(409, "order {0} cannot transition from {1}");
+  INSUFFICIENT_STOCK(409, "stock insufficient for product {0}"),
+  STOCK_CONTENTION(409, "stock contention, please retry"),
+  INVALID_TRANSITION(409, "order {0} cannot transition from {1}"),
+  IDEMPOTENCY_KEY_CONFLICT(422, "idempotency key reused with different payload");
 
   private final int httpStatus;
   private final String template;

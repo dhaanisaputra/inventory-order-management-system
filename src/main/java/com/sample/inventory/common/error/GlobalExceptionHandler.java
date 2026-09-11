@@ -1,6 +1,8 @@
 package com.sample.inventory.common.error;
 
 import com.sample.inventory.common.web.ApiResponse;
+import jakarta.persistence.LockTimeoutException;
+import jakarta.persistence.PessimisticLockException;
 import java.util.stream.Collectors;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -24,6 +26,12 @@ public class GlobalExceptionHandler {
             .map(e -> e.getField() + " " + e.getDefaultMessage())
             .collect(Collectors.joining("; "));
     return ResponseEntity.badRequest().body(ApiResponse.fail(ErrorCode.VALIDATION.name(), message));
+  }
+
+  @ExceptionHandler({PessimisticLockException.class, LockTimeoutException.class})
+  public ResponseEntity<ApiResponse<Void>> handleContention(RuntimeException ex) {
+    return ResponseEntity.status(ErrorCode.STOCK_CONTENTION.httpStatus())
+        .body(ApiResponse.fail(ErrorCode.STOCK_CONTENTION.name(), ErrorCode.STOCK_CONTENTION.format()));
   }
 
   @ExceptionHandler(Exception.class)

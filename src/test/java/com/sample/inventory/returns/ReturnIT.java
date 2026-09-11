@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.sample.inventory.TestcontainersConfiguration;
+import com.sample.inventory.common.error.DomainException;
 import com.sample.inventory.common.error.ReturnExceededException;
 import com.sample.inventory.inventory.Inventory;
 import com.sample.inventory.inventory.InventoryRepository;
@@ -91,5 +92,14 @@ class ReturnIT {
         .isInstanceOf(ReturnExceededException.class);
     var inv = invRepo.findByProduct_Id(p.getId()).get(0);
     assertThat(inv.getAvailable()).isEqualTo(4);
+  }
+
+  @Test
+  void duplicateAllocationInOneRequestIsRejected() {
+    assertThatThrownBy(() -> returns.create(new CreateReturnRequest(List.of(
+        new CreateReturnLine(allocationId, 1),
+        new CreateReturnLine(allocationId, 1)))))
+        .isInstanceOf(DomainException.class);
+    assertThat(returnRepo.count()).isZero();
   }
 }

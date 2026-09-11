@@ -1,5 +1,7 @@
 package com.sample.inventory.returns;
 
+import com.sample.inventory.common.error.DomainException;
+import com.sample.inventory.common.error.ErrorCode;
 import com.sample.inventory.common.error.NotFoundException;
 import com.sample.inventory.common.error.ReturnExceededException;
 import com.sample.inventory.inventory.InventoryRepository;
@@ -8,6 +10,7 @@ import com.sample.inventory.movement.MovementWriter;
 import com.sample.inventory.order.Allocation;
 import com.sample.inventory.order.AllocationRepository;
 import java.util.Comparator;
+import java.util.HashSet;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -27,6 +30,12 @@ public class ReturnService {
 
   @Transactional
   public ReturnResponse create(CreateReturnRequest req) {
+    var seen = new HashSet<Long>();
+    for (var l : req.lines()) {
+      if (!seen.add(l.allocationId())) {
+        throw new DomainException(ErrorCode.VALIDATION);
+      }
+    }
     var order = new ReturnOrder();
     var sorted = req.lines().stream()
         .sorted(Comparator.comparing(CreateReturnRequest.CreateReturnLine::allocationId))

@@ -42,9 +42,7 @@ public class ReturnService {
             .sorted(Comparator.comparing(CreateReturnRequest.CreateReturnLine::allocationId))
             .toList();
     for (var line : sorted) {
-      Allocation alloc =
-          allocationRepo
-              .findById(line.allocationId())
+      Allocation alloc = allocationRepo.lockById(line.allocationId())
               .orElseThrow(() -> new NotFoundException("allocation", line.allocationId()));
       int already = lineRepo.sumReturnedByAllocation(alloc.getId());
       if (line.qty() + already > alloc.getQty()) {

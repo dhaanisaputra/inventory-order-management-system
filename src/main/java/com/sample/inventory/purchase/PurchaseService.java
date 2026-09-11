@@ -61,7 +61,7 @@ public class PurchaseService {
 
   @Transactional
   public PurchaseResponse receive(long id, ReceiveRequest req) {
-    var po = poRepo.findById(id).orElseThrow(() -> new NotFoundException("purchase order", id));
+    var po = poRepo.lockById(id).orElseThrow(() -> new NotFoundException("purchase order", id));
     if (po.getStatus() != PurchaseOrderStatus.OPEN) {
       throw new DomainException(ErrorCode.VALIDATION);
     }

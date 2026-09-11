@@ -3,6 +3,9 @@ package com.sample.inventory.order;
 import com.sample.inventory.common.error.IdempotencyConflictException;
 import com.sample.inventory.common.error.InsufficientStockException;
 import com.sample.inventory.common.error.NotFoundException;
+import com.sample.inventory.events.KafkaTopics;
+import com.sample.inventory.events.LowStockNotifier;
+import com.sample.inventory.events.OutboxWriter;
 import com.sample.inventory.inventory.InventoryRepository;
 import com.sample.inventory.movement.MovementType;
 import com.sample.inventory.movement.MovementWriter;
@@ -33,6 +36,8 @@ public class OrderService {
   private final InventoryRepository invRepo;
   private final ProductRepository productRepo;
   private final MovementWriter movements;
+  private final OutboxWriter outbox;
+  private final LowStockNotifier notifier;
   private final ReservationProperties props;
   private final Clock clock;
 
@@ -102,6 +107,8 @@ public class OrderService {
         return get(existing.getOrder().getId());
       }
     }
+    outbox.write(KafkaTopics.ORDER_CREATED, String.valueOf(order.getId()),
+        Map.of("orderId", order.getId(), "status", order.getStatus().name()));
     return get(order.getId());
   }
 
@@ -127,6 +134,8 @@ public class OrderService {
       return OrderMapper.toResponse(order);
     }
     order.confirm();
+    outbox.write(KafkaTopics.ORDER_CONFIRMED, String.valueOf(order.getId()),
+        Map.of("orderId", order.getId(), "status", order.getStatus().name()));
     Map<Long, Reservation> resByAlloc = new HashMap<>();
     for (var r : reservationRepo.lockByOrderId(id)) {
       resByAlloc.put(r.getAllocation().getId(), r);
@@ -150,6 +159,7 @@ public class OrderService {
                             "inventory",
                             line.getProduct().getId() + "/" + alloc.getWarehouse().getId()));
         inv.confirm(alloc.getQty());
+        notifier.notifyIfLow(inv);
         resByAlloc.get(alloc.getId()).confirm();
         movements.write(
             line.getProduct(),
@@ -168,6 +178,8 @@ public class OrderService {
     var order =
         orderRepo.findDetailedById(id).orElseThrow(() -> new NotFoundException("order", id));
     order.cancel();
+    outbox.write(KafkaTopics.ORDER_CANCELLED, String.valueOf(order.getId()),
+        Map.of("orderId", order.getId(), "status", order.getStatus().name()));
     Map<Long, Reservation> resByAlloc = new HashMap<>();
     for (var r : reservationRepo.lockByOrderId(id)) {
       resByAlloc.put(r.getAllocation().getId(), r);

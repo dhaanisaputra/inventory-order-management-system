@@ -53,7 +53,7 @@ src/main/java/com/sample/inventory/
 MVP order: product + warehouse + inventory + order with reservation → movement history →
 purchase/returns/alerts → Kafka + Redis → AI stubs.
 
-## API (Fase 1a)
+## API
 
 | Method | Path | Keterangan |
 |---|---|---|
@@ -63,5 +63,12 @@ purchase/returns/alerts → Kafka + Redis → AI stubs.
 | POST | /api/v1/warehouses | create (201) |
 | GET | /api/v1/warehouses | list polos by priority |
 | GET / PATCH | /api/v1/warehouses/{id} | detail / rename + reprioritize |
+| POST | /api/v1/orders (+ Idempotency-Key) | create split allocation (201), 409 if short |
+| GET | /api/v1/orders?status=&from=&to= | paged, sort: createdAt |
+| GET | /api/v1/orders/{id} | detail with lines + allocations |
+| POST | /api/v1/orders/{id}/confirm | idempotent confirm (200) |
+| POST | /api/v1/orders/{id}/cancel | cancel + restock (200) |
+| GET | /api/v1/inventories?productId=&warehouseId=&lowStockOnly= | paged |
+| GET | /api/v1/stock-movements?... | paged + type/date filters |
 
 Swagger UI: /swagger-ui.html — OpenAPI: /v3/api-docs

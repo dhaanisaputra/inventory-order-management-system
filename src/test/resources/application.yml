@@ -4,3 +4,8 @@ spring:
       auto-startup: false
   cache:
     type: simple
+app:
+  reservation:
+    ttl: PT30M
+  outbox:
+    relay-interval: PT10S

@@ -70,5 +70,10 @@ purchase/returns/alerts → Kafka + Redis → AI stubs.
 | POST | /api/v1/orders/{id}/cancel | cancel + restock (200) |
 | GET | /api/v1/inventories?productId=&warehouseId=&lowStockOnly= | paged |
 | GET | /api/v1/stock-movements?... | paged + type/date filters |
+| POST | /api/v1/purchase-orders | create PO (201) |
+| GET | /api/v1/purchase-orders | paged, sort: createdAt |
+| POST | /api/v1/purchase-orders/{id}/receive | partial/full receive (200), over-receive → 400 |
+| POST | /api/v1/returns | return to origin warehouse (201), over-return → 400 |
+| GET | /api/v1/returns | paged, sort: createdAt |
 
 Swagger UI: /swagger-ui.html — OpenAPI: /v3/api-docs

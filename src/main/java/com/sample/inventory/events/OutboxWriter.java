@@ -1,7 +1,7 @@
 package com.sample.inventory.events;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -18,7 +18,7 @@ public class OutboxWriter {
   public void write(String topic, String key, Object event) {
     try {
       repo.save(new OutboxEvent(topic, key, objectMapper.writeValueAsString(event)));
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new IllegalStateException("outbox serialize failed", e);
     }
   }

@@ -7,7 +7,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.sample.inventory.inventory.Inventory;
 import com.sample.inventory.product.Product;
 import com.sample.inventory.warehouse.Warehouse;

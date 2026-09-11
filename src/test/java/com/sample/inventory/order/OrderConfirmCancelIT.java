@@ -108,4 +108,12 @@ class OrderConfirmCancelIT {
     assertThatThrownBy(() -> orders.confirm(created.id()))
         .isInstanceOf(InvalidTransitionException.class);
   }
+
+  @Test
+  void doubleCancelThrowsInvalidTransition() {
+    var created = pendingOrder(2);
+    orders.cancel(created.id());
+    assertThatThrownBy(() -> orders.cancel(created.id()))
+        .isInstanceOf(InvalidTransitionException.class);
+  }
 }

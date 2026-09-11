@@ -155,9 +155,6 @@ public class OrderService {
   public OrderResponse cancel(long id) {
     var order = orderRepo.findDetailedById(id)
         .orElseThrow(() -> new NotFoundException("order", id));
-    if (order.getStatus() == OrderStatus.CANCELLED) {
-      return OrderMapper.toResponse(order);
-    }
     order.cancel();
     Map<Long, Reservation> resByAlloc = new HashMap<>();
     for (var r : reservationRepo.lockByOrderId(id)) {

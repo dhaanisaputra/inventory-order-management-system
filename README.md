@@ -52,3 +52,16 @@ src/main/java/com/sample/inventory/
 
 MVP order: product + warehouse + inventory + order with reservation → movement history →
 purchase/returns/alerts → Kafka + Redis → AI stubs.
+
+## API (Fase 1a)
+
+| Method | Path | Keterangan |
+|---|---|---|
+| POST | /api/v1/products | create (201), duplicate sku → 409 |
+| GET | /api/v1/products?q=&page=&size=&sort= | paged, sort whitelist: sku,name,createdAt |
+| GET / PATCH | /api/v1/products/{id} | detail / rename + active flag |
+| POST | /api/v1/warehouses | create (201) |
+| GET | /api/v1/warehouses | list polos by priority |
+| GET / PATCH | /api/v1/warehouses/{id} | detail / rename + reprioritize |
+
+Swagger UI: /swagger-ui.html — OpenAPI: /v3/api-docs

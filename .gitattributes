@@ -1,2 +1,5 @@
 /mvnw text eol=lf
 *.cmd text eol=crlf
+
+# Normalize Java sources to LF so spotless:check stays green on Windows checkouts
+*.java text eol=lf

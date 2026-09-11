@@ -129,6 +129,8 @@ Confirm / cancel / expiry:
 ## 7. Katalog error (`ErrorCode`: code + HTTP + message template)
 
 - `VALIDATION` (400), `NOT_FOUND` (404)
+- `DUPLICATE` (409, "{0} already exists" — sku/code ganda; ditambahkan saat Fase 1a)
+- `INTERNAL` (500, fallback handler; ditambahkan saat Fase 1a)
 - `INSUFFICIENT_STOCK` (409, "stock insufficient for product {sku}")
 - `STOCK_CONTENTION` (409, "stock contention, please retry")
 - `INVALID_TRANSITION` (409, "order {id} cannot transition from {status}")

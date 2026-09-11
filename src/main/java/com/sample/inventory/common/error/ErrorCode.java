@@ -4,7 +4,8 @@ public enum ErrorCode {
   VALIDATION(400, "validation failed"),
   NOT_FOUND(404, "resource not found"),
   DUPLICATE(409, "{0} already exists"),
-  INTERNAL(500, "internal error");
+  INTERNAL(500, "internal error"),
+  INVALID_TRANSITION(409, "order {0} cannot transition from {1}");
 
   private final int httpStatus;
   private final String template;

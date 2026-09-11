@@ -2,9 +2,9 @@ spring:
   application:
     name: inventory-order-management-system
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/inventory_db}
-    username: ${SPRING_DATASOURCE_USERNAME:inventory}
-    password: ${SPRING_DATASOURCE_PASSWORD:inventory}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/inventory_management}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:admin}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:

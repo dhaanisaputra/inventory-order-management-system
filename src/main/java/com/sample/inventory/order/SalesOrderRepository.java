@@ -14,8 +14,8 @@ public interface SalesOrderRepository extends JpaRepository<SalesOrder, Long> {
   @Query("select o from SalesOrder o where o.id = :id")
   Optional<SalesOrder> findDetailedById(long id);
 
-  @Query("select o from SalesOrder o where (:status is null or o.status = :status)"
-      + " and (:from is null or o.createdAt >= :from)"
-      + " and (:to is null or o.createdAt <= :to)")
+  @Query(
+      "select o from SalesOrder o where (:status is null or o.status = :status)"
+          + " and o.createdAt >= :from and o.createdAt <= :to")
   Page<SalesOrder> search(OrderStatus status, Instant from, Instant to, Pageable pageable);
 }

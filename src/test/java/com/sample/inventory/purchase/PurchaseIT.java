@@ -4,8 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.sample.inventory.TestcontainersConfiguration;
-import com.sample.inventory.common.error.OverReceiveException;
 import com.sample.inventory.common.error.NotFoundException;
+import com.sample.inventory.common.error.OverReceiveException;
 import com.sample.inventory.inventory.Inventory;
 import com.sample.inventory.inventory.InventoryRepository;
 import com.sample.inventory.movement.MovementType;
@@ -49,27 +49,30 @@ class PurchaseIT {
 
   @Test
   void partialThenCompleteReceiving() {
-    var po = purchases.create(new CreatePurchaseRequest(
-        List.of(new CreatePurchaseLine(p.getId(), 10))));
+    var po =
+        purchases.create(new CreatePurchaseRequest(List.of(new CreatePurchaseLine(p.getId(), 10))));
     assertThat(po.status()).isEqualTo(PurchaseOrderStatus.OPEN);
-    var afterFirst = purchases.receive(po.id(),
-        new ReceiveRequest(List.of(new ReceiveItem(p.getId(), w.getId(), 4))));
+    var afterFirst =
+        purchases.receive(
+            po.id(), new ReceiveRequest(List.of(new ReceiveItem(p.getId(), w.getId(), 4))));
     assertThat(afterFirst.status()).isEqualTo(PurchaseOrderStatus.OPEN);
-    var afterSecond = purchases.receive(po.id(),
-        new ReceiveRequest(List.of(new ReceiveItem(p.getId(), w.getId(), 6))));
+    var afterSecond =
+        purchases.receive(
+            po.id(), new ReceiveRequest(List.of(new ReceiveItem(p.getId(), w.getId(), 6))));
     assertThat(afterSecond.status()).isEqualTo(PurchaseOrderStatus.COMPLETED);
     var inv = invRepo.findByProduct_Id(p.getId()).get(0);
     assertThat(inv.getAvailable()).isEqualTo(10);
-    assertThat(movementRepo.findAll()).extracting(m -> m.getType())
-        .containsOnly(MovementType.IN);
+    assertThat(movementRepo.findAll()).extracting(m -> m.getType()).containsOnly(MovementType.IN);
   }
 
   @Test
   void overReceiveIsRejected() {
-    var po = purchases.create(new CreatePurchaseRequest(
-        List.of(new CreatePurchaseLine(p.getId(), 5))));
-    assertThatThrownBy(() -> purchases.receive(po.id(),
-        new ReceiveRequest(List.of(new ReceiveItem(p.getId(), w.getId(), 6)))))
+    var po =
+        purchases.create(new CreatePurchaseRequest(List.of(new CreatePurchaseLine(p.getId(), 5))));
+    assertThatThrownBy(
+            () ->
+                purchases.receive(
+                    po.id(), new ReceiveRequest(List.of(new ReceiveItem(p.getId(), w.getId(), 6)))))
         .isInstanceOf(OverReceiveException.class);
     var inv = invRepo.findByProduct_Id(p.getId()).get(0);
     assertThat(inv.getAvailable()).isZero();
@@ -77,10 +80,12 @@ class PurchaseIT {
 
   @Test
   void unknownProductLineIsRejected() {
-    var po = purchases.create(new CreatePurchaseRequest(
-        List.of(new CreatePurchaseLine(p.getId(), 5))));
-    assertThatThrownBy(() -> purchases.receive(po.id(),
-        new ReceiveRequest(List.of(new ReceiveItem(999999L, w.getId(), 1)))))
+    var po =
+        purchases.create(new CreatePurchaseRequest(List.of(new CreatePurchaseLine(p.getId(), 5))));
+    assertThatThrownBy(
+            () ->
+                purchases.receive(
+                    po.id(), new ReceiveRequest(List.of(new ReceiveItem(999999L, w.getId(), 1)))))
         .isInstanceOf(NotFoundException.class);
   }
 }

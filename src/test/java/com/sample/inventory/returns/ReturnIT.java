@@ -58,28 +58,32 @@ class ReturnIT {
     p = productRepo.save(new Product("SKU-" + System.nanoTime(), "Keyboard"));
     w = warehouseRepo.save(new Warehouse("W-" + System.nanoTime(), "W", 1));
     invRepo.save(new Inventory(p, w, 5, 0, 1));
-    var order = orders.create(
-        new CreateOrderRequest(List.of(new CreateOrderLine(p.getId(), 3))), null, null);
+    var order =
+        orders.create(
+            new CreateOrderRequest(List.of(new CreateOrderLine(p.getId(), 3))), null, null);
     allocationId = order.lines().get(0).allocations().get(0).id();
   }
 
   @Test
   void returnRestocksOriginWarehouse() {
-    var ret = returns.create(new CreateReturnRequest(
-        List.of(new CreateReturnLine(allocationId, 2))));
+    var ret =
+        returns.create(new CreateReturnRequest(List.of(new CreateReturnLine(allocationId, 2))));
     assertThat(ret.lines()).hasSize(1);
     assertThat(ret.lines().get(0).warehouseCode()).isEqualTo(w.getCode());
     var inv = invRepo.findByProduct_Id(p.getId()).get(0);
     assertThat(inv.getAvailable()).isEqualTo(4);
     assertThat(inv.getReserved()).isEqualTo(3);
-    assertThat(movementRepo.findAll()).extracting(m -> m.getType())
+    assertThat(movementRepo.findAll())
+        .extracting(m -> m.getType())
         .containsExactlyInAnyOrder(MovementType.RESERVE, MovementType.IN);
   }
 
   @Test
   void returnBeyondAllocatedIsRejected() {
-    assertThatThrownBy(() -> returns.create(new CreateReturnRequest(
-        List.of(new CreateReturnLine(allocationId, 4)))))
+    assertThatThrownBy(
+            () ->
+                returns.create(
+                    new CreateReturnRequest(List.of(new CreateReturnLine(allocationId, 4)))))
         .isInstanceOf(ReturnExceededException.class);
     assertThat(returnRepo.count()).isZero();
   }
@@ -87,8 +91,10 @@ class ReturnIT {
   @Test
   void cumulativeReturnsAreCapped() {
     returns.create(new CreateReturnRequest(List.of(new CreateReturnLine(allocationId, 2))));
-    assertThatThrownBy(() -> returns.create(new CreateReturnRequest(
-        List.of(new CreateReturnLine(allocationId, 2)))))
+    assertThatThrownBy(
+            () ->
+                returns.create(
+                    new CreateReturnRequest(List.of(new CreateReturnLine(allocationId, 2)))))
         .isInstanceOf(ReturnExceededException.class);
     var inv = invRepo.findByProduct_Id(p.getId()).get(0);
     assertThat(inv.getAvailable()).isEqualTo(4);
@@ -96,9 +102,13 @@ class ReturnIT {
 
   @Test
   void duplicateAllocationInOneRequestIsRejected() {
-    assertThatThrownBy(() -> returns.create(new CreateReturnRequest(List.of(
-        new CreateReturnLine(allocationId, 1),
-        new CreateReturnLine(allocationId, 1)))))
+    assertThatThrownBy(
+            () ->
+                returns.create(
+                    new CreateReturnRequest(
+                        List.of(
+                            new CreateReturnLine(allocationId, 1),
+                            new CreateReturnLine(allocationId, 1)))))
         .isInstanceOf(DomainException.class);
     assertThat(returnRepo.count()).isZero();
   }

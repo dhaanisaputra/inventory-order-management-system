@@ -37,33 +37,49 @@ public class ReturnService {
       }
     }
     var order = new ReturnOrder();
-    var sorted = req.lines().stream()
-        .sorted(Comparator.comparing(CreateReturnRequest.CreateReturnLine::allocationId))
-        .toList();
+    var sorted =
+        req.lines().stream()
+            .sorted(Comparator.comparing(CreateReturnRequest.CreateReturnLine::allocationId))
+            .toList();
     for (var line : sorted) {
-      Allocation alloc = allocationRepo.findById(line.allocationId())
-          .orElseThrow(() -> new NotFoundException("allocation", line.allocationId()));
+      Allocation alloc =
+          allocationRepo
+              .findById(line.allocationId())
+              .orElseThrow(() -> new NotFoundException("allocation", line.allocationId()));
       int already = lineRepo.sumReturnedByAllocation(alloc.getId());
       if (line.qty() + already > alloc.getQty()) {
         throw new ReturnExceededException(alloc.getId());
       }
-      var inv = invRepo.lockOne(
-              alloc.getOrderLine().getProduct().getId(), alloc.getWarehouse().getId())
-          .orElseThrow(() -> new NotFoundException("inventory",
-              alloc.getOrderLine().getProduct().getId() + "/" + alloc.getWarehouse().getId()));
+      var inv =
+          invRepo
+              .lockOne(alloc.getOrderLine().getProduct().getId(), alloc.getWarehouse().getId())
+              .orElseThrow(
+                  () ->
+                      new NotFoundException(
+                          "inventory",
+                          alloc.getOrderLine().getProduct().getId()
+                              + "/"
+                              + alloc.getWarehouse().getId()));
       inv.add(line.qty());
       order.addLine(new ReturnLine(order, alloc, line.qty()));
     }
     returnRepo.saveAndFlush(order);
     for (var l : order.getLines()) {
-      movements.write(l.getAllocation().getOrderLine().getProduct(),
-          l.getAllocation().getWarehouse(), MovementType.IN, l.getQty(), "RETURN", order.getId());
+      movements.write(
+          l.getAllocation().getOrderLine().getProduct(),
+          l.getAllocation().getWarehouse(),
+          MovementType.IN,
+          l.getQty(),
+          "RETURN",
+          order.getId());
     }
     return ReturnMapper.toResponse(order);
   }
 
   public ReturnResponse get(long id) {
-    return returnRepo.findById(id).map(ReturnMapper::toResponse)
+    return returnRepo
+        .findById(id)
+        .map(ReturnMapper::toResponse)
         .orElseThrow(() -> new NotFoundException("return", id));
   }
 

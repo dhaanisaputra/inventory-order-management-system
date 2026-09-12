@@ -88,3 +88,46 @@ purchase/returns/alerts → Kafka + Redis → AI stubs.
 Events (Kafka): `inventory.order.created|confirmed|cancelled`, `inventory.stock.movement` via transactional outbox + relay (10s); `inventory.stock.low` fire-and-forget on confirm, logged by alert consumer.
 
 Swagger UI: /swagger-ui.html — OpenAPI: /v3/api-docs
+
+## Flows
+
+### System overview
+
+```mermaid
+flowchart LR
+    Client --> App["Spring Boot :8080"]
+    App --> PG[("PostgreSQL<br/>source of truth")]
+    App --> Redis[("Redis<br/>read cache 30s")]
+    App --> Kafka["Kafka :9092"]
+    App -- "relay (10s)" --> Kafka
+    Kafka -- "stock.low" --> Consumer["Alert consumer<br/>(log stub)"]
+```
+
+### Order lifecycle (single transaction per transition)
+
+```mermaid
+flowchart TD
+    Create["POST /orders<br/>lines sorted by productId"] --> Lock["Lock inventory rows FOR UPDATE<br/>in warehouse-priority order"]
+    Lock --> Alloc["Greedy split by priority<br/>+ reserve + RESERVE movement<br/>+ outbox order.created"]
+    Alloc -->|short stock| R409["409 INSUFFICIENT_STOCK<br/>(full rollback)"]
+    Alloc --> Pending["PENDING"]
+    Pending --> Confirm["POST /confirm<br/>(idempotent: repeat = current state)"]
+    Pending --> Cancel["POST /cancel"]
+    Pending --> Expire["Expiry worker (60s, SKIP LOCKED)"]
+    Confirm --> Confirmed["CONFIRMED<br/>reserved→sold + OUT movement<br/>+ low-stock check"]
+    Cancel --> Cancelled1["CANCELLED<br/>stock restored + RELEASE"]
+    Expire --> Expired["EXPIRED → order CANCELLED<br/>stock restored + RELEASE"]
+```
+
+### Inbound, returns, transfers, cache
+
+```mermaid
+flowchart TD
+    PO["POST /purchase-orders → receive"] --> IN1["available += qty<br/>+ IN movement"]
+    Ret["POST /returns (allocationId)"] --> IN2["restock ORIGIN warehouse<br/>+ IN movement (capped)"]
+    Tr["POST /transfers A→B"] --> TRM["lock A,B by id order<br/>A deduct, B add<br/>+ OUT/IN same refId"]
+    Inv["GET /products/{id}/inventory"] --> Cache{"Redis inv::{id}?"}
+    Cache -->|hit| Cached["200 (cached)"]
+    Cache -->|miss| DB["read Postgres → cache 30s"]
+    Mut["order/purchase/return/transfer/expiry"] --> Evict["evict inv cache"]
+```

@@ -25,7 +25,5 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
   boolean existsByAllocationOrderLineOrderIdAndStatus(long orderId, ReservationStatus status);
 
-  long countByStatus(ReservationStatus status);
-
   long countByStatusAndCreatedAtAfter(ReservationStatus status, Instant createdAt);
 }

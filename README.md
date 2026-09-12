@@ -24,7 +24,7 @@ keep stock accurate under **concurrent orders**. Built with **Java + Spring Boot
 Database modeling, transactions, concurrency, pessimistic/optimistic locking,
 event-driven architecture (Kafka), caching (Redis), distributed backend concepts.
 
-## AI Features (nice to have, later)
+## Insights (rule-based)
 
 - [x] Demand forecasting
 - [x] Smart stock replenishment

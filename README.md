@@ -26,11 +26,11 @@ event-driven architecture (Kafka), caching (Redis), distributed backend concepts
 
 ## AI Features (nice to have, later)
 
-- [ ] Demand forecasting
-- [ ] Smart stock replenishment
-- [ ] Inventory anomaly detection
-- [ ] Product recommendations
-- [ ] AI inventory assistant
+- [x] Demand forecasting
+- [x] Smart stock replenishment
+- [x] Inventory anomaly detection
+- [x] Product recommendations
+- [x] AI inventory assistant
 
 ## Quickstart
 
@@ -79,6 +79,11 @@ purchase/returns/alerts → Kafka + Redis → AI stubs.
 | GET | /api/v1/stock-movements | (existing — now also emits Kafka events) |
 | POST | /api/v1/transfers | move stock A→B (201), short source → 409 |
 | GET | /api/v1/transfers | paged, sort: createdAt |
+| GET | /api/v1/insights/demand?productId=&days= | moving-average forecast |
+| GET | /api/v1/insights/replenishment | reorder-point suggestions |
+| GET | /api/v1/insights/anomalies?days= | rule-based anomalies |
+| GET | /api/v1/insights/recommendations?productId= | bought-together top 5 |
+| POST | /api/v1/insights/assistant | rule-based inventory Q&A |
 
 Events (Kafka): `inventory.order.created|confirmed|cancelled`, `inventory.stock.movement` via transactional outbox + relay (10s); `inventory.stock.low` fire-and-forget on confirm, logged by alert consumer.
 

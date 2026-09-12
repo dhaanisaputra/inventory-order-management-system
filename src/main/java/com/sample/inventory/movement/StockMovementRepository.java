@@ -1,6 +1,7 @@
 package com.sample.inventory.movement;
 
 import java.time.Instant;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -22,4 +23,6 @@ public interface StockMovementRepository extends JpaRepository<StockMovement, Lo
       Instant from,
       Instant to,
       Pageable pageable);
+
+  List<StockMovement> findByTypeAndCreatedAtAfter(MovementType type, Instant since);
 }

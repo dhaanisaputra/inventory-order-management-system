@@ -24,4 +24,6 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
   List<Reservation> lockByOrderId(long orderId);
 
   boolean existsByAllocationOrderLineOrderIdAndStatus(long orderId, ReservationStatus status);
+
+  long countByStatus(ReservationStatus status);
 }

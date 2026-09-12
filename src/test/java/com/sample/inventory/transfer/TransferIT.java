@@ -54,10 +54,12 @@ class TransferIT {
     assertThat(res.fromWarehouseCode()).isEqualTo(src.getCode());
     assertThat(res.toWarehouseCode()).isEqualTo(dst.getCode());
     var rows = invRepo.findByProduct_Id(p.getId());
-    assertThat(rows).extracting(i -> i.getWarehouse().getCode() + "=" + i.getAvailable())
+    assertThat(rows)
+        .extracting(i -> i.getWarehouse().getCode() + "=" + i.getAvailable())
         .containsExactlyInAnyOrder(src.getCode() + "=6", dst.getCode() + "=4");
     var moves = movementRepo.findAll();
-    assertThat(moves).extracting(m -> m.getType())
+    assertThat(moves)
+        .extracting(m -> m.getType())
         .containsExactlyInAnyOrder(MovementType.OUT, MovementType.IN);
     assertThat(moves).extracting(m -> m.getRefId()).containsOnly(res.id());
     assertThat(moves).extracting(m -> m.getRefType()).containsOnly("TRANSFER");
@@ -73,8 +75,8 @@ class TransferIT {
 
   @Test
   void insufficientSourceIsRejected() {
-    assertThatThrownBy(() -> transfers.create(
-        new TransferRequest(p.getId(), src.getId(), dst.getId(), 99)))
+    assertThatThrownBy(
+            () -> transfers.create(new TransferRequest(p.getId(), src.getId(), dst.getId(), 99)))
         .isInstanceOf(InsufficientStockException.class);
     assertThat(transferRepo.count()).isZero();
     assertThat(movementRepo.count()).isZero();
@@ -83,10 +85,10 @@ class TransferIT {
 
   @Test
   void selfTransferIsRejected() {
-    assertThatThrownBy(() -> transfers.create(
-        new TransferRequest(p.getId(), src.getId(), src.getId(), 1)))
+    assertThatThrownBy(
+            () -> transfers.create(new TransferRequest(p.getId(), src.getId(), src.getId(), 1)))
         .isInstanceOf(DomainException.class)
-        .satisfies(e -> assertThat(((DomainException) e).getCode())
-            .isEqualTo(ErrorCode.VALIDATION));
+        .satisfies(
+            e -> assertThat(((DomainException) e).getCode()).isEqualTo(ErrorCode.VALIDATION));
   }
 }

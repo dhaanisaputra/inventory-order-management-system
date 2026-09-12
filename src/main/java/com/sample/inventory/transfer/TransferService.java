@@ -37,8 +37,10 @@ public class TransferService {
     if (req.fromWarehouseId().equals(req.toWarehouseId())) {
       throw new DomainException(ErrorCode.VALIDATION);
     }
-    Product product = productRepo.findById(req.productId())
-        .orElseThrow(() -> new NotFoundException("product", req.productId()));
+    Product product =
+        productRepo
+            .findById(req.productId())
+            .orElseThrow(() -> new NotFoundException("product", req.productId()));
     long firstId = Math.min(req.fromWarehouseId(), req.toWarehouseId());
     long secondId = Math.max(req.fromWarehouseId(), req.toWarehouseId());
     var first = invRepo.lockOne(req.productId(), firstId);
@@ -50,25 +52,34 @@ public class TransferService {
     if (source.getAvailable() < req.qty()) {
       throw new InsufficientStockException(product.getSku());
     }
-    Inventory dest = destOpt.orElseGet(() -> {
-      var wh = warehouseRepo.findById(fromIsFirst ? secondId : firstId).orElseThrow(
-          () -> new NotFoundException("warehouse", fromIsFirst ? secondId : firstId));
-      return invRepo.save(new Inventory(product, wh, 0, 0, 0));
-    });
+    Inventory dest =
+        destOpt.orElseGet(
+            () -> {
+              var wh =
+                  warehouseRepo
+                      .findById(fromIsFirst ? secondId : firstId)
+                      .orElseThrow(
+                          () ->
+                              new NotFoundException("warehouse", fromIsFirst ? secondId : firstId));
+              return invRepo.save(new Inventory(product, wh, 0, 0, 0));
+            });
     source.deduct(req.qty());
     dest.add(req.qty());
-    var transfer = transferRepo.saveAndFlush(
-        new StockTransfer(product, source.getWarehouse(), dest.getWarehouse(), req.qty()));
-    movements.write(product, source.getWarehouse(), MovementType.OUT,
-        req.qty(), "TRANSFER", transfer.getId());
-    movements.write(product, dest.getWarehouse(), MovementType.IN,
-        req.qty(), "TRANSFER", transfer.getId());
+    var transfer =
+        transferRepo.saveAndFlush(
+            new StockTransfer(product, source.getWarehouse(), dest.getWarehouse(), req.qty()));
+    movements.write(
+        product, source.getWarehouse(), MovementType.OUT, req.qty(), "TRANSFER", transfer.getId());
+    movements.write(
+        product, dest.getWarehouse(), MovementType.IN, req.qty(), "TRANSFER", transfer.getId());
     notifier.notifyIfLow(source);
     return TransferMapper.toResponse(transfer);
   }
 
   public TransferResponse get(long id) {
-    return transferRepo.findById(id).map(TransferMapper::toResponse)
+    return transferRepo
+        .findById(id)
+        .map(TransferMapper::toResponse)
         .orElseThrow(() -> new NotFoundException("transfer", id));
   }
 

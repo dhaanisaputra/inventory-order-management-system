@@ -7,17 +7,17 @@ keep stock accurate under **concurrent orders**. Built with **Java + Spring Boot
 
 ## Key Features (roadmap)
 
-- [ ] Product management
-- [ ] Multiple warehouses
-- [ ] Real-time inventory
-- [ ] Concurrency-safe ordering (transactions + locking)
-- [ ] Order management
-- [ ] Stock reservation
-- [ ] Returns
-- [ ] Purchase orders
-- [ ] Low-stock alerts
-- [ ] Inventory synchronization
-- [ ] Stock movement history
+- [x] Product management
+- [x] Multiple warehouses
+- [x] Real-time inventory
+- [x] Concurrency-safe ordering (transactions + locking)
+- [x] Order management
+- [x] Stock reservation
+- [x] Returns
+- [x] Purchase orders
+- [x] Low-stock alerts
+- [x] Inventory synchronization
+- [x] Stock movement history
 
 ## You'll see in this repo
 
@@ -77,6 +77,8 @@ purchase/returns/alerts → Kafka + Redis → AI stubs.
 | GET | /api/v1/returns | paged, sort: createdAt |
 | GET | /api/v1/products/{id}/inventory | per-warehouse stock, Redis cached (30s) |
 | GET | /api/v1/stock-movements | (existing — now also emits Kafka events) |
+| POST | /api/v1/transfers | move stock A→B (201), short source → 409 |
+| GET | /api/v1/transfers | paged, sort: createdAt |
 
 Events (Kafka): `inventory.order.created|confirmed|cancelled`, `inventory.stock.movement` via transactional outbox + relay (10s); `inventory.stock.low` fire-and-forget on confirm, logged by alert consumer.
 

@@ -57,19 +57,28 @@ class RecommendationIT {
     invRepo.save(new Inventory(b, w, 100, 0, 1));
     invRepo.save(new Inventory(c, w, 100, 0, 1));
     for (int i = 0; i < 2; i++) {
-      var o = orders.create(new CreateOrderRequest(List.of(
-          new CreateOrderLine(a.getId(), 1), new CreateOrderLine(b.getId(), 1))), null, null);
+      var o =
+          orders.create(
+              new CreateOrderRequest(
+                  List.of(new CreateOrderLine(a.getId(), 1), new CreateOrderLine(b.getId(), 1))),
+              null,
+              null);
       orders.confirm(o.id());
     }
-    var o3 = orders.create(new CreateOrderRequest(List.of(
-        new CreateOrderLine(a.getId(), 1), new CreateOrderLine(c.getId(), 1))), null, null);
+    var o3 =
+        orders.create(
+            new CreateOrderRequest(
+                List.of(new CreateOrderLine(a.getId(), 1), new CreateOrderLine(c.getId(), 1))),
+            null,
+            null);
     orders.confirm(o3.id());
   }
 
   @Test
   void recommendsFrequentBasketMate() {
     var recs = recommendations.forProduct(a.getId());
-    assertThat(recs).extracting(r -> r.productSku())
+    assertThat(recs)
+        .extracting(r -> r.productSku())
         .contains(b.getSku())
         .doesNotContain(c.getSku());
     assertThat(recs.get(0).boughtTogetherCount()).isEqualTo(2);

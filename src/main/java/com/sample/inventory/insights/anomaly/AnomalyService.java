@@ -64,8 +64,13 @@ public class AnomalyService {
       double avg = prior.stream().mapToInt(StockMovement::getQty).average().orElse(0);
       if (avg > 0 && latest.getQty() > SPIKE_FACTOR * avg) {
         var severity = latest.getQty() > SPIKE_HIGH_FACTOR * avg ? "HIGH" : "MEDIUM";
-        out.add(new AnomalyDto(AnomalyType.SPIKE, e.getKey(), severity,
-            "OUT " + latest.getQty() + " exceeds 3x avg " + avg, clock.instant()));
+        out.add(
+            new AnomalyDto(
+                AnomalyType.SPIKE,
+                e.getKey(),
+                severity,
+                "OUT " + latest.getQty() + " exceeds 3x avg " + avg,
+                clock.instant()));
       }
     }
     return out;
@@ -87,8 +92,13 @@ public class AnomalyService {
       int ret = e.getValue();
       int o = outs.getOrDefault(e.getKey(), 0);
       if (ret >= RETURNS_MIN_QTY && o > 0 && (double) ret / (ret + o) > RETURNS_RATIO) {
-        out.add(new AnomalyDto(AnomalyType.HIGH_RETURNS, e.getKey(), "HIGH",
-            "returned " + ret + " of " + (ret + o) + " moved", clock.instant()));
+        out.add(
+            new AnomalyDto(
+                AnomalyType.HIGH_RETURNS,
+                e.getKey(),
+                "HIGH",
+                "returned " + ret + " of " + (ret + o) + " moved",
+                clock.instant()));
       }
     }
     return out;
@@ -96,12 +106,18 @@ public class AnomalyService {
 
   private List<AnomalyDto> detectExpiryRate(Instant since) {
     long expired = reservationRepo.countByStatusAndCreatedAtAfter(ReservationStatus.EXPIRED, since);
-    long confirmed = reservationRepo.countByStatusAndCreatedAtAfter(ReservationStatus.CONFIRMED, since);
+    long confirmed =
+        reservationRepo.countByStatusAndCreatedAtAfter(ReservationStatus.CONFIRMED, since);
     long total = expired + confirmed;
     var out = new ArrayList<AnomalyDto>();
     if (total >= EXPIRY_MIN_TOTAL && (double) expired / total > EXPIRY_RATIO) {
-      out.add(new AnomalyDto(AnomalyType.HIGH_EXPIRY, null, "MEDIUM",
-          "expired " + expired + " of " + total + " terminal reservations", clock.instant()));
+      out.add(
+          new AnomalyDto(
+              AnomalyType.HIGH_EXPIRY,
+              null,
+              "MEDIUM",
+              "expired " + expired + " of " + total + " terminal reservations",
+              clock.instant()));
     }
     return out;
   }

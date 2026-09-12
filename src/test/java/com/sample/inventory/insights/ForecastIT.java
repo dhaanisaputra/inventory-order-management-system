@@ -53,8 +53,9 @@ class ForecastIT {
     p = productRepo.save(new Product("SKU-" + System.nanoTime(), "Keyboard"));
     var w = warehouseRepo.save(new Warehouse("W-" + System.nanoTime(), "W", 1));
     invRepo.save(new Inventory(p, w, 100, 0, 1));
-    var order = orders.create(
-        new CreateOrderRequest(List.of(new CreateOrderLine(p.getId(), 10))), null, null);
+    var order =
+        orders.create(
+            new CreateOrderRequest(List.of(new CreateOrderLine(p.getId(), 10))), null, null);
     orders.confirm(order.id());
   }
 
@@ -69,8 +70,7 @@ class ForecastIT {
 
   @Test
   void unknownProductThrowsNotFound() {
-    assertThatThrownBy(() -> forecast.forecast(999999L, 30))
-        .isInstanceOf(NotFoundException.class);
+    assertThatThrownBy(() -> forecast.forecast(999999L, 30)).isInstanceOf(NotFoundException.class);
   }
 
   @Test

@@ -65,15 +65,17 @@ class AnomalyIT {
     }
     movementRepo.save(StockMovement.of(p, w, MovementType.OUT, 20, "ORDER", 200));
     var found = anomalies.scan(30);
-    assertThat(found).filteredOn(a -> a.type() == AnomalyType.SPIKE
-        && a.productId().equals(p.getId())).hasSize(1);
+    assertThat(found)
+        .filteredOn(a -> a.type() == AnomalyType.SPIKE && a.productId().equals(p.getId()))
+        .hasSize(1);
   }
 
   @Test
   void quietDataProducesNothing() {
     movementRepo.save(StockMovement.of(p, w, MovementType.OUT, 2, "ORDER", 1));
     var found = anomalies.scan(30);
-    assertThat(found).filteredOn(a -> a.productId() != null && a.productId().equals(p.getId()))
+    assertThat(found)
+        .filteredOn(a -> a.productId() != null && a.productId().equals(p.getId()))
         .isEmpty();
   }
 
@@ -84,15 +86,15 @@ class AnomalyIT {
     }
     movementRepo.save(StockMovement.of(p, w, MovementType.IN, 10, "RETURN", 400));
     var found = anomalies.scan(30);
-    assertThat(found).filteredOn(a -> a.type() == AnomalyType.HIGH_RETURNS
-        && a.productId().equals(p.getId())).hasSize(1);
+    assertThat(found)
+        .filteredOn(a -> a.type() == AnomalyType.HIGH_RETURNS && a.productId().equals(p.getId()))
+        .hasSize(1);
   }
 
   @Test
   void detectsHighExpiryRate() {
     for (int i = 0; i < 6; i++) {
-      orders.create(new CreateOrderRequest(
-          List.of(new CreateOrderLine(p.getId(), 1))), null, null);
+      orders.create(new CreateOrderRequest(List.of(new CreateOrderLine(p.getId(), 1))), null, null);
     }
     expiry.expireBatch(java.time.Instant.now().plusSeconds(3600));
     var found = anomalies.scan(30);

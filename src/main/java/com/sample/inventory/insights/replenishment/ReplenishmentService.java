@@ -26,20 +26,33 @@ public class ReplenishmentService {
         continue;
       }
       var fc = forecast.forecast(product.getId(), 30);
-      double reorderPoint = fc.avgDailyQty() * props.leadTimeDays()
-          + fc.avgDailyQty() * props.safetyDays();
-      int available = invRepo.findByProductId(product.getId()).stream()
-          .mapToInt(i -> i.getAvailable()).sum();
+      double reorderPoint =
+          fc.avgDailyQty() * props.leadTimeDays() + fc.avgDailyQty() * props.safetyDays();
+      int available =
+          invRepo.findByProductId(product.getId()).stream().mapToInt(i -> i.getAvailable()).sum();
       if (available < reorderPoint) {
         int suggested = (int) Math.ceil(reorderPoint - available);
-        out.add(new ReplenishmentSuggestion(product.getId(), product.getSku(), available,
-            reorderPoint, suggested,
-            "available " + available + " below reorder point " + reorderPoint
-                + " (lead " + props.leadTimeDays() + "d + safety " + props.safetyDays() + "d)"));
+        out.add(
+            new ReplenishmentSuggestion(
+                product.getId(),
+                product.getSku(),
+                available,
+                reorderPoint,
+                suggested,
+                "available "
+                    + available
+                    + " below reorder point "
+                    + reorderPoint
+                    + " (lead "
+                    + props.leadTimeDays()
+                    + "d + safety "
+                    + props.safetyDays()
+                    + "d)"));
       }
     }
-    out.sort((a, b) -> Double.compare(
-        b.reorderPoint() - b.available(), a.reorderPoint() - a.available()));
+    out.sort(
+        (a, b) ->
+            Double.compare(b.reorderPoint() - b.available(), a.reorderPoint() - a.available()));
     return out;
   }
 }

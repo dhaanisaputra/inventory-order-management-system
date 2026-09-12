@@ -51,14 +51,16 @@ class ReplenishmentIT {
     p = productRepo.save(new Product("SKU-" + System.nanoTime(), "Keyboard"));
     var w = warehouseRepo.save(new Warehouse("W-" + System.nanoTime(), "W", 1));
     invRepo.save(new Inventory(p, w, 12, 0, 5));
-    var order = orders.create(
-        new CreateOrderRequest(List.of(new CreateOrderLine(p.getId(), 10))), null, null);
+    var order =
+        orders.create(
+            new CreateOrderRequest(List.of(new CreateOrderLine(p.getId(), 10))), null, null);
     orders.confirm(order.id());
   }
 
   @Test
   void suggestsBelowReorderPoint() {
-    // avg=10/30 per day; lead 7d + safety 3d → reorderPoint=10/30*10=3.3333; available=12-10=2 → suggest 2
+    // avg=10/30 per day; lead 7d + safety 3d → reorderPoint=10/30*10=3.3333; available=12-10=2 →
+    // suggest 2
     var all = replenishment.suggestAll();
     var mine = all.stream().filter(s -> s.productSku().equals(p.getSku())).toList();
     assertThat(mine).hasSize(1);

@@ -24,8 +24,10 @@ public class DemandForecastService {
   private final Clock clock;
 
   public DemandForecastResponse forecast(long productId, int horizonDays) {
-    var product = productRepo.findById(productId)
-        .orElseThrow(() -> new NotFoundException("product", productId));
+    var product =
+        productRepo
+            .findById(productId)
+            .orElseThrow(() -> new NotFoundException("product", productId));
     int horizon = Math.min(Math.max(horizonDays, 1), 90);
     var since = clock.instant().minusSeconds((long) WINDOW_DAYS * 24 * 3600);
     var lines = lineRepo.findConfirmedByProductSince(productId, OrderStatus.CONFIRMED, since);
@@ -36,7 +38,13 @@ public class DemandForecastService {
     }
     int sum = perDay.values().stream().mapToInt(Integer::intValue).sum();
     double avg = (double) sum / WINDOW_DAYS;
-    return new DemandForecastResponse(productId, product.getSku(), WINDOW_DAYS,
-        avg, horizon, avg * horizon, "moving-average-30d");
+    return new DemandForecastResponse(
+        productId,
+        product.getSku(),
+        WINDOW_DAYS,
+        avg,
+        horizon,
+        avg * horizon,
+        "moving-average-30d");
   }
 }

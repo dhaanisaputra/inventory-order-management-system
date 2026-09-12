@@ -21,6 +21,7 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
           + " order by i.warehouse.priority asc, i.warehouse.id asc")
   List<Inventory> lockAvailable(long productId);
 
+  @EntityGraph(attributePaths = {"product", "warehouse"})
   List<Inventory> findByProduct_Id(long productId);
 
   @EntityGraph(attributePaths = {"product", "warehouse"})

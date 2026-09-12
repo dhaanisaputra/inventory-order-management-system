@@ -86,6 +86,13 @@ public class Inventory {
     available += qty;
   }
 
+  public void deduct(int qty) {
+    if (qty <= 0 || qty > available) {
+      throw new IllegalArgumentException("cannot deduct " + qty + ", available=" + available);
+    }
+    available -= qty;
+  }
+
   public void add(int qty) {
     if (qty <= 0) {
       throw new IllegalArgumentException("qty must be positive");

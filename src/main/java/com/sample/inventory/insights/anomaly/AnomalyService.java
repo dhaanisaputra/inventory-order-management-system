@@ -24,13 +24,23 @@ public class AnomalyService {
   private final ReservationRepository reservationRepo;
   private final Clock clock;
 
+  // Rule thresholds (rule-based v1 heuristics)
+  private static final int SPIKE_MIN_SAMPLES = 4;
+  private static final int SPIKE_PRIOR_MIN = 3;
+  private static final double SPIKE_FACTOR = 3.0;
+  private static final double SPIKE_HIGH_FACTOR = 5.0;
+  private static final int RETURNS_MIN_QTY = 3;
+  private static final double RETURNS_RATIO = 0.5;
+  private static final int EXPIRY_MIN_TOTAL = 5;
+  private static final double EXPIRY_RATIO = 0.5;
+
   public List<AnomalyDto> scan(int days) {
     int window = Math.min(Math.max(days, 1), 90);
     var since = clock.instant().minusSeconds((long) window * 24 * 3600);
     var out = new ArrayList<AnomalyDto>();
     out.addAll(detectSpikes(since));
     out.addAll(detectReturnAbuse(since));
-    out.addAll(detectExpiryRate());
+    out.addAll(detectExpiryRate(since));
     return out;
   }
 
@@ -43,17 +53,17 @@ public class AnomalyService {
     var out = new ArrayList<AnomalyDto>();
     for (var e : byProduct.entrySet()) {
       var list = e.getValue();
-      if (list.size() < 4) {
+      if (list.size() < SPIKE_MIN_SAMPLES) {
         continue;
       }
       var latest = list.stream().max(Comparator.comparing(StockMovement::getId)).orElseThrow();
       var prior = list.stream().filter(m -> !m.getId().equals(latest.getId())).toList();
-      if (prior.size() < 3) {
+      if (prior.size() < SPIKE_PRIOR_MIN) {
         continue;
       }
       double avg = prior.stream().mapToInt(StockMovement::getQty).average().orElse(0);
-      if (avg > 0 && latest.getQty() > 3 * avg) {
-        var severity = latest.getQty() > 5 * avg ? "HIGH" : "MEDIUM";
+      if (avg > 0 && latest.getQty() > SPIKE_FACTOR * avg) {
+        var severity = latest.getQty() > SPIKE_HIGH_FACTOR * avg ? "HIGH" : "MEDIUM";
         out.add(new AnomalyDto(AnomalyType.SPIKE, e.getKey(), severity,
             "OUT " + latest.getQty() + " exceeds 3x avg " + avg, clock.instant()));
       }
@@ -76,7 +86,7 @@ public class AnomalyService {
     for (var e : returns.entrySet()) {
       int ret = e.getValue();
       int o = outs.getOrDefault(e.getKey(), 0);
-      if (ret >= 3 && o > 0 && (double) ret / (ret + o) > 0.5) {
+      if (ret >= RETURNS_MIN_QTY && o > 0 && (double) ret / (ret + o) > RETURNS_RATIO) {
         out.add(new AnomalyDto(AnomalyType.HIGH_RETURNS, e.getKey(), "HIGH",
             "returned " + ret + " of " + (ret + o) + " moved", clock.instant()));
       }
@@ -84,12 +94,12 @@ public class AnomalyService {
     return out;
   }
 
-  private List<AnomalyDto> detectExpiryRate() {
-    long expired = reservationRepo.countByStatus(ReservationStatus.EXPIRED);
-    long confirmed = reservationRepo.countByStatus(ReservationStatus.CONFIRMED);
+  private List<AnomalyDto> detectExpiryRate(Instant since) {
+    long expired = reservationRepo.countByStatusAndCreatedAtAfter(ReservationStatus.EXPIRED, since);
+    long confirmed = reservationRepo.countByStatusAndCreatedAtAfter(ReservationStatus.CONFIRMED, since);
     long total = expired + confirmed;
     var out = new ArrayList<AnomalyDto>();
-    if (total >= 5 && (double) expired / total > 0.5) {
+    if (total >= EXPIRY_MIN_TOTAL && (double) expired / total > EXPIRY_RATIO) {
       out.add(new AnomalyDto(AnomalyType.HIGH_EXPIRY, null, "MEDIUM",
           "expired " + expired + " of " + total + " terminal reservations", clock.instant()));
     }

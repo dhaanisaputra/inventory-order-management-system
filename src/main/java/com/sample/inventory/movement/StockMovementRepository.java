@@ -24,5 +24,6 @@ public interface StockMovementRepository extends JpaRepository<StockMovement, Lo
       Instant to,
       Pageable pageable);
 
+  @EntityGraph(attributePaths = {"product", "warehouse"})
   List<StockMovement> findByTypeAndCreatedAtAfter(MovementType type, Instant since);
 }

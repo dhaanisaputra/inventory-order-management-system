@@ -46,6 +46,9 @@ management:
       exposure:
         include: health,info
 app:
+  replenishment:
+    lead-time-days: 7
+    safety-days: 3
   reservation:
     ttl: PT30M
   outbox:

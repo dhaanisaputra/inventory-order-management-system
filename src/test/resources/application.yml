@@ -5,6 +5,9 @@ spring:
   cache:
     type: simple
 app:
+  replenishment:
+    lead-time-days: 7
+    safety-days: 3
   kafka:
     topics:
       create: false
